@@ -30,10 +30,18 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   }
 
   const handleAddToCart = () => {
+    if (product.stock_quantity && product.stock_quantity < quantity) {
+      toast.error('Not enough stock available', {
+        description: `Only ${product.stock_quantity} items are available.`,
+      })
+      return
+    }
+
     addItem({ 
       id: product.id, 
       name: product.name, 
       price: product.price, 
+      stock: product.stock_quantity, // Add the 'stock' property
       // Use fallback image if product image is missing
       image: product.image_url || fallbackImageUrl, 
       quantity 
@@ -136,7 +144,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         <div className="flex space-x-4">
           <button
             onClick={handleAddToCart}
-            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2"
+            disabled={product.stock_quantity === 0}
+            className={`flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2 ${
+              product.stock_quantity === 0 ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             <ShoppingCart className="h-5 w-5" />
             <span>Add to Cart</span>

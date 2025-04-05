@@ -11,6 +11,7 @@ export interface CartItem {
   price: number
   image: string
   quantity: number
+  stock: number
 }
 
 interface CartStore {
@@ -58,6 +59,11 @@ export const useCart = create<CartStore>()(
         setUserId: (userId: string | null) => set({ userId }),
         addItem: (item) =>
           set((state) => {
+            if (item.quantity > item.stock) {
+              toast.error('Not enough stock to add item to cart')
+              return state
+            }
+
             const existingItem = state.items.find((i) => i.id === item.id)
             const newState = existingItem
               ? {
@@ -91,6 +97,12 @@ export const useCart = create<CartStore>()(
 
         updateQuantity: (id, quantity) =>
           set((state) => {
+            const item = state.items.find((i) => i.id === id)
+            if (item && quantity > item.stock) {
+              toast.error('Not enough stock to update quantity')
+              return state
+            }
+
             const newState = {
               items: state.items.map((i) =>
                 i.id === id ? { ...i, quantity } : i

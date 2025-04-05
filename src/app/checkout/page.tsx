@@ -8,6 +8,7 @@ import { CheckCircle, ChevronRight, CreditCard, MapPin, Truck, User, AlertCircle
 import Image from 'next/image'
 import { useAuth } from '@/hooks/useAuth'
 import { processCheckout, ShippingAddress } from '@/lib/services/checkout'
+import { paymentMethods } from '@/lib/constants/payment-methods'
 
 // Define checkout steps
 const CHECKOUT_STEPS = {
@@ -35,7 +36,7 @@ export default function CheckoutPage() {
     state: '',
     phoneNumber: '',
     shippingMethod: 'standard',
-    paymentMethod: 'credit-card',
+    paymentMethod: paymentMethods[0].id,
     cardNumber: '',
     cardExpiry: '',
     cardCvc: ''
@@ -429,41 +430,25 @@ export default function CheckoutPage() {
               {currentStep === CHECKOUT_STEPS.PAYMENT && (
                 <div className="space-y-6">
                   <div className="space-y-4">
-                    <div className="flex items-center p-4 border rounded-lg mb-3 cursor-pointer bg-blue-50 border-blue-500">
-                      <input
-                        type="radio"
-                        name="payment"
-                        id="credit-card"
-                        value="credit-card"
-                        checked={formData.paymentMethod === 'credit-card'}
-                        onChange={() => setFormData({ ...formData, paymentMethod: 'credit-card' })}
-                        className="h-4 w-4 text-blue-600"
-                      />
-                      <label htmlFor="credit-card" className="ml-3 flex flex-1 cursor-pointer">
-                        <div>
-                          <p className="font-medium">Credit Card</p>
-                          <p className="text-sm text-gray-500">Visa, Mastercard, American Express</p>
-                        </div>
-                      </label>
-                    </div>
-                    
-                    <div className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        name="payment"
-                        id="paypal"
-                        value="paypal"
-                        checked={formData.paymentMethod === 'paypal'}
-                        onChange={() => setFormData({ ...formData, paymentMethod: 'paypal' })}
-                        className="h-4 w-4 text-blue-600"
-                      />
-                      <label htmlFor="paypal" className="ml-3 flex flex-1 cursor-pointer">
-                        <div>
-                          <p className="font-medium">PayPal</p>
-                          <p className="text-sm text-gray-500">Pay using your PayPal account</p>
-                        </div>
-                      </label>
-                    </div>
+                    {paymentMethods.map((method) => (
+                      <div key={method.id} className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="payment"
+                          id={method.id}
+                          value={method.id}
+                          checked={formData.paymentMethod === method.id}
+                          onChange={() => setFormData({ ...formData, paymentMethod: method.id })}
+                          className="h-4 w-4 text-blue-600"
+                        />
+                        <label htmlFor={method.id} className="ml-3 flex flex-1 cursor-pointer">
+                          <div>
+                            <p className="font-medium">{method.name}</p>
+                            <p className="text-sm text-gray-500">{method.description}</p>
+                          </div>
+                        </label>
+                      </div>
+                    ))}
                   </div>
 
                   {formData.paymentMethod === 'credit-card' && (
@@ -587,8 +572,8 @@ export default function CheckoutPage() {
                       {formData.paymentMethod === 'credit-card' && !formData.cardNumber && (
                         <p>Credit Card</p>
                       )}
-                      {formData.paymentMethod === 'paypal' && (
-                        <p>PayPal</p>
+                      {formData.paymentMethod !== 'credit-card' && (
+                        <p>{formData.paymentMethod}</p>
                       )}
                     </div>
                   </div>

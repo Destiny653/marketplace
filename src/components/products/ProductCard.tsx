@@ -30,7 +30,19 @@ export default function ProductCard({ product }: ProductCardProps) {
       showAuthModal('cart')
       return
     }
-    addItem({ ...product, image: product.image_url, quantity: 1 })
+    
+    // Check if product is in stock
+    if (product.stock_quantity <= 0) {
+      toast.error(`${product.name} is out of stock`)
+      return
+    }
+    
+    addItem({ 
+      ...product, 
+      image: product.image_url, 
+      quantity: 1,
+      stock: product.stock_quantity 
+    })
     
     // Add notification when product is added to cart
     toast.success(`${product.name} added to cart`, {
@@ -110,6 +122,13 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <span className="text-lg font-bold text-gray-900">
                   {formatPrice(product.price)}
                 </span>
+              )}
+            </div>
+            <div className="text-sm text-gray-500">
+              {product.stock_quantity > 0 ? (
+                <span>In Stock ({product.stock_quantity})</span>
+              ) : (
+                <span>Out of Stock</span>
               )}
             </div>
           </div>
