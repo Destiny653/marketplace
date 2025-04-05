@@ -5,6 +5,15 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { ShoppingCart, User, Heart, MessageSquare, Search, Menu, X, ChevronDown, Phone, Mail, MapPin } from 'lucide-react'
 import CartButton from '@/components/layout/CartButton'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  image_url?: string
+}
 
 export default function Header() {
   const { user } = useAuth()
@@ -12,6 +21,9 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const supabase = createClientComponentClient()
 
   // Handle scroll effect
   useEffect(() => {
@@ -22,12 +34,51 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Fetch categories from database
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('id, name, slug, description, image_url')
+          .order('name')
+        
+        if (error) {
+          throw error
+        }
+        
+        setCategories(data || [])
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      } finally {
+        setCategoriesLoading(false)
+      }
+    }
+    
+    fetchCategories()
+  }, [supabase])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
       window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`
     }
   }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement
+      if (isCategoryDropdownOpen && !target.closest('.category-dropdown')) {
+        setIsCategoryDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isCategoryDropdownOpen])
 
   return (
     <header className="w-full bg-white">
@@ -130,7 +181,7 @@ export default function Header() {
         <nav className="bg-blue-600 text-white hidden md:block">
           <div className="container mx-auto px-4">
             <ul className="flex">
-              <li className="relative group">
+              <li className="relative group category-dropdown">
                 <button 
                   className="py-3 px-4 flex items-center hover:bg-blue-700 transition-colors"
                   onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
@@ -141,31 +192,33 @@ export default function Header() {
                 {isCategoryDropdownOpen && (
                   <div className="absolute left-0 top-full bg-white text-gray-800 shadow-lg rounded-b-md w-64 z-50">
                     <ul className="py-2">
-                      <li>
-                        <Link href="/categories/electronics" className="block px-4 py-2 hover:bg-gray-100">
-                          Electronics
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/categories/fashion" className="block px-4 py-2 hover:bg-gray-100">
-                          Fashion
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/categories/home" className="block px-4 py-2 hover:bg-gray-100">
-                          Home & Garden
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/categories/beauty" className="block px-4 py-2 hover:bg-gray-100">
-                          Beauty & Health
-                        </Link>
-                      </li>
-                      <li>
-                        <Link href="/categories" className="block px-4 py-2 text-blue-600 font-medium hover:bg-gray-100">
-                          View All Categories
-                        </Link>
-                      </li>
+                      {categoriesLoading ? (
+                        <li className="px-4 py-2 text-gray-500">Loading categories...</li>
+                      ) : categories.length > 0 ? (
+                        <>
+                          {categories.map((category) => (
+                            <li key={category.id}>
+                              <Link href={`/categories/${category.slug}`} className="block px-4 py-2 hover:bg-gray-100">
+                                {category.name}
+                              </Link>
+                            </li>
+                          ))}
+                          <li>
+                            <Link href="/categories" className="block px-4 py-2 text-blue-600 font-medium hover:bg-gray-100">
+                              View All Categories
+                            </Link>
+                          </li>
+                        </>
+                      ) : (
+                        <>
+                          <li className="px-4 py-2 text-gray-500">No categories found</li>
+                          <li>
+                            <Link href="/categories" className="block px-4 py-2 text-blue-600 font-medium hover:bg-gray-100">
+                              View All Categories
+                            </Link>
+                          </li>
+                        </>
+                      )}
                     </ul>
                   </div>
                 )}

@@ -4,13 +4,13 @@ import Image from 'next/image'
 import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
 
-interface Props {
+interface PageProps {
   params: {
-    id: string  // This is actually the slug
+    id: string
   }
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { data: post } = await supabase
     .from('blog_posts')
     .select('*')
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function BlogPostPage({ params }: Props) {
+export default async function BlogPostPage({ params }: PageProps) {
   const { data: post } = await supabase
     .from('blog_posts')
     .select('*')

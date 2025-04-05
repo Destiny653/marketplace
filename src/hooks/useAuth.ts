@@ -17,6 +17,8 @@ type AuthReturnType = {
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
   refreshSession: () => Promise<{ error: AuthError | null }>
+  signInWithGoogle: () => Promise<{ error: AuthError | null }>
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>
 }
 
 interface AuthSession {
@@ -181,6 +183,51 @@ export function useAuth(): AuthReturnType {
     }
   }, [supabase])
 
+  const signInWithGoogle = useCallback(async (): Promise<{ error: AuthError | null }> => {
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      
+      if (error) {
+        throw error
+      }
+      
+      return { error: null }
+    } catch (err) {
+      const authError = err as AuthError
+      setError(authError)
+      return { error: authError }
+    } finally {
+      setLoading(false)
+    }
+  }, [supabase])
+
+  const resetPassword = useCallback(async (email: string): Promise<{ error: AuthError | null }> => {
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      
+      if (error) {
+        throw error
+      }
+      
+      return { error: null }
+    } catch (err) {
+      const authError = err as AuthError
+      setError(authError)
+      return { error: authError }
+    } finally {
+      setLoading(false)
+    }
+  }, [supabase])
+
   return {
     user,
     loading,
@@ -188,6 +235,8 @@ export function useAuth(): AuthReturnType {
     signIn,
     signUp,
     signOut,
-    refreshSession
+    refreshSession,
+    signInWithGoogle,
+    resetPassword
   } satisfies AuthReturnType
 }
