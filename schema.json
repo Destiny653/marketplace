@@ -1,0 +1,280 @@
+{
+  "tables": {
+    "categories": {
+      "id": {
+        "type": "UUID",
+        "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"]
+      },
+      "name": {
+        "type": "VARCHAR(255)",
+        "constraints": ["NOT NULL"]
+      },
+      "slug": {
+        "type": "VARCHAR(255)",
+        "constraints": ["NOT NULL", "UNIQUE"]
+      },
+      "description": {
+        "type": "TEXT",
+        "constraints": []
+      },
+      "image_url": {
+        "type": "TEXT",
+        "constraints": []
+      },
+      "created_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      },
+      "updated_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      }
+    },
+    "products": {
+      "id": {
+        "type": "UUID",
+        "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"]
+      },
+      "name": {
+        "type": "VARCHAR(255)",
+        "constraints": ["NOT NULL"]
+      },
+      "slug": {
+        "type": "VARCHAR(255)",
+        "constraints": ["NOT NULL", "UNIQUE"]
+      },
+      "description": {
+        "type": "TEXT",
+        "constraints": []
+      },
+      "price": {
+        "type": "DECIMAL(10, 2)",
+        "constraints": ["NOT NULL"]
+      },
+      "category_id": {
+        "type": "UUID",
+        "constraints": ["REFERENCES categories(id)", "ON DELETE SET NULL"]
+      },
+      "image_url": {
+        "type": "TEXT",
+        "constraints": []
+      },
+      "stock_quantity": {
+        "type": "INTEGER",
+        "constraints": ["DEFAULT 0"]
+      },
+      "status": {
+        "type": "VARCHAR(50)",
+        "constraints": ["DEFAULT 'active'"]
+      },
+      "created_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      },
+      "updated_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      }
+    },
+    "orders": {
+      "id": {
+        "type": "UUID",
+        "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"]
+      },
+      "user_id": {
+        "type": "UUID",
+        "constraints": ["REFERENCES auth.users(id)", "ON DELETE SET NULL"]
+      },
+      "status": {
+        "type": "VARCHAR(50)",
+        "constraints": ["DEFAULT 'pending'"]
+      },
+      "total_amount": {
+        "type": "DECIMAL(10, 2)",
+        "constraints": ["NOT NULL"]
+      },
+      "shipping_address": {
+        "type": "JSONB",
+        "constraints": ["NOT NULL"]
+      },
+      "billing_address": {
+        "type": "JSONB",
+        "constraints": []
+      },
+      "payment_method": {
+        "type": "VARCHAR(50)",
+        "constraints": []
+      },
+      "payment_status": {
+        "type": "VARCHAR(50)",
+        "constraints": ["DEFAULT 'pending'"]
+      },
+      "payment_intent_id": {
+        "type": "VARCHAR(255)",
+        "constraints": []
+      },
+      "shipping_method": {
+        "type": "VARCHAR(50)",
+        "constraints": []
+      },
+      "created_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      },
+      "updated_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      }
+    },
+    "order_items": {
+      "id": {
+        "type": "UUID",
+        "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"]
+      },
+      "order_id": {
+        "type": "UUID",
+        "constraints": ["REFERENCES orders(id)", "ON DELETE CASCADE"]
+      },
+      "product_id": {
+        "type": "UUID",
+        "constraints": ["REFERENCES products(id)", "ON DELETE SET NULL"]
+      },
+      "quantity": {
+        "type": "INTEGER",
+        "constraints": ["NOT NULL"]
+      },
+      "price_at_time": {
+        "type": "DECIMAL(10, 2)",
+        "constraints": ["NOT NULL"]
+      },
+      "created_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      }
+    },
+    "inventory_transactions": {
+      "id": {
+        "type": "UUID",
+        "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"]
+      },
+      "product_id": {
+        "type": "UUID",
+        "constraints": ["REFERENCES products(id)", "ON DELETE SET NULL"]
+      },
+      "quantity_change": {
+        "type": "INTEGER",
+        "constraints": ["NOT NULL"]
+      },
+      "type": {
+        "type": "VARCHAR(50)",
+        "constraints": ["NOT NULL"]
+      },
+      "reference_id": {
+        "type": "UUID",
+        "constraints": []
+      },
+      "notes": {
+        "type": "TEXT",
+        "constraints": []
+      },
+      "created_by": {
+        "type": "UUID",
+        "constraints": ["REFERENCES auth.users(id)", "ON DELETE SET NULL"]
+      },
+      "created_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      }
+    },
+    "carts": {
+      "id": {
+        "type": "UUID",
+        "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"]
+      },
+      "user_id": {
+        "type": "UUID",
+        "constraints": ["REFERENCES auth.users(id)", "ON DELETE CASCADE", "NOT NULL"]
+      },
+      "product_id": {
+        "type": "UUID",
+        "constraints": ["REFERENCES products(id)", "ON DELETE CASCADE", "NOT NULL"]
+      },
+      "quantity": {
+        "type": "INTEGER",
+        "constraints": ["NOT NULL", "DEFAULT 1"]
+      },
+      "created_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      },
+      "updated_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      }
+    },
+    "product_likes": {
+      "id": {
+        "type": "UUID",
+        "constraints": ["PRIMARY KEY", "DEFAULT gen_random_uuid()"]
+      },
+      "user_id": {
+        "type": "UUID",
+        "constraints": ["REFERENCES auth.users(id)", "ON DELETE CASCADE", "NOT NULL"]
+      },
+      "product_id": {
+        "type": "UUID",
+        "constraints": ["REFERENCES products(id)", "ON DELETE CASCADE", "NOT NULL"]
+      },
+      "created_at": {
+        "type": "TIMESTAMP WITH TIME ZONE",
+        "constraints": ["DEFAULT TIMEZONE('utc', NOW())"]
+      }
+    }
+  },
+  "indexes": {
+    "products": [
+      "CREATE INDEX idx_products_category ON products(category_id)",
+      "CREATE INDEX idx_products_status ON products(status)"
+    ],
+    "orders": [
+      "CREATE INDEX idx_orders_user ON orders(user_id)",
+      "CREATE INDEX idx_orders_status ON orders(status)"
+    ],
+    "order_items": [
+      "CREATE INDEX idx_order_items_order ON order_items(order_id)"
+    ],
+    "inventory_transactions": [
+      "CREATE INDEX idx_inventory_transactions_product ON inventory_transactions(product_id)",
+      "CREATE INDEX idx_inventory_transactions_reference ON inventory_transactions(reference_id)"
+    ],
+    "carts": [
+      "CREATE INDEX idx_carts_user ON carts(user_id)",
+      "CREATE INDEX idx_carts_product ON carts(product_id)"
+    ],
+    "product_likes": [
+      "CREATE UNIQUE INDEX idx_product_likes_user_product ON product_likes(user_id, product_id)"
+    ]
+  },
+  "relationships": {
+    "products": {
+      "belongs_to": ["categories"],
+      "has_many": ["order_items", "inventory_transactions", "carts", "product_likes"]
+    },
+    "orders": {
+      "belongs_to": ["auth.users"],
+      "has_many": ["order_items"]
+    },
+    "order_items": {
+      "belongs_to": ["orders", "products"]
+    },
+    "inventory_transactions": {
+      "belongs_to": ["products", "auth.users"]
+    },
+    "carts": {
+      "belongs_to": ["auth.users", "products"]
+    },
+    "product_likes": {
+      "belongs_to": ["auth.users", "products"]
+    }
+  }
+}
