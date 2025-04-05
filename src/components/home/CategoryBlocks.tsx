@@ -42,7 +42,8 @@ export default function CategoryBlocks() {
         const categoriesWithCounts = categoriesData.map(category => ({
           ...category,
           product_count: category.products?.[0]?.count || 0,
-          slug: category.id // Use ID as slug since we don't have a slug column
+          // Use the actual slug field instead of ID
+          slug: category.slug || category.id
         }))
 
         setCategories(categoriesWithCounts)

@@ -5,6 +5,7 @@ const nextConfig = {
       'fadfwafokisfdatjcteu.supabase.co',
       'images.unsplash.com',  // Added Unsplash domain
       'placehold.co', 
+      'example.com'
     ],
     remotePatterns: [
       {
@@ -20,6 +21,11 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'placehold.co',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'example.com',
         pathname: '/**',
       }
     ],

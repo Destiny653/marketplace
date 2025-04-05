@@ -39,10 +39,11 @@ export default async function CategoryPage({ params }: Props) {
     notFound()
   }
 
+  // Use the actual category.id instead of params.id (which is the slug)
   const { data: products } = await supabase
     .from('products')
     .select('*')
-    .eq('category_id', params.id)
+    .eq('category_id', category.id)
 
   return (
     <div className="container mx-auto px-4 py-8">

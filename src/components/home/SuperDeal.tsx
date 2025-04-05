@@ -161,7 +161,7 @@ export default function SuperDeal() {
                   {product.sale_price && (
                     <span className="text-gray-400 line-through mr-2">${product.price.toFixed(2)}</span>
                   )}
-                  <span className="text-blue-600 font-bold">${product.sale_price.toFixed(2)}</span>
+                  <span className="text-blue-600 font-bold">${product?.sale_price?.toFixed(2)}</span>
                 </div>
                 
                 <button

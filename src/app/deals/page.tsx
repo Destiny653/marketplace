@@ -1,54 +1,66 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { Tag, Clock } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 import ProductGrid from '@/components/products/ProductGrid'
 
 export const metadata: Metadata = {
-  title: 'Special Deals | Marketplace',
-  description: 'Discover our limited-time special deals and discounts on a wide range of products.',
+  title: 'Super Deals | Marketplace',
+  description: 'Discover our limited-time super deals and discounts on a wide range of products.',
 }
 
 export default async function DealsPage() {
+  // Fetch products with sale prices
+  const { data: saleProducts, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('status', 'active')
+    .not('sale_price', 'is', null)
+    .order('sale_price', { ascending: true })
+    .limit(12)
+
+  if (error) {
+    console.error('Error fetching sale products:', error)
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-8 mb-10 text-white">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">Special Deals & Offers</h1>
-        <p className="text-lg md:text-xl mb-6 max-w-2xl">
-          Limited-time discounts on top products. Don't miss these amazing deals!
+      <div className="bg-gradient-to-r from-amber-400 to-amber-500 rounded-xl p-8 mb-10 text-white">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 text-blue-900">SUPER DEALS!!</h1>
+        <p className="text-xl md:text-2xl mb-6 max-w-2xl font-semibold">
+          UPTO 15% DISCOUNT on our best products
         </p>
         <div className="flex flex-wrap gap-4">
-          <div className="flex items-center bg-white/20 px-4 py-2 rounded-full">
+          <div className="flex items-center bg-blue-900 px-4 py-2 rounded-full text-white">
             <Tag className="h-5 w-5 mr-2" />
-            <span>Up to 70% off</span>
+            <span>Limited time offers</span>
           </div>
-          <div className="flex items-center bg-white/20 px-4 py-2 rounded-full">
+          <div className="flex items-center bg-blue-900 px-4 py-2 rounded-full text-white">
             <Clock className="h-5 w-5 mr-2" />
-            <span>Limited time only</span>
+            <span>Hurry before they're gone!</span>
           </div>
         </div>
       </div>
 
       {/* Deals Grid */}
       <div className="mb-12">
-        <h2 className="text-2xl font-bold mb-6">Today's Hot Deals</h2>
-        <ProductGrid 
-          options={{ 
-            sort: 'price_asc',
-            limit: 8 
-          }} 
-        />
+        <h2 className="text-2xl font-bold mb-6">Today's Super Deals</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {(saleProducts || []).slice(0, 8).map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
       </div>
 
       {/* Weekly Deals */}
       <div className="mb-12">
-        <h2 className="text-2xl font-bold mb-6">Weekly Deals</h2>
-        <ProductGrid 
-          options={{ 
-            sort: 'popular',
-            limit: 4 
-          }} 
-        />
+        <h2 className="text-2xl font-bold mb-6">More Great Deals</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {(saleProducts || []).slice(8).map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
       </div>
 
       {/* CTA Section */}
@@ -72,4 +84,54 @@ export default async function DealsPage() {
       </div>
     </div>
   )
+}
+
+// Product Card Component
+function ProductCard({ product }: { product: any }) {
+  const discountPercentage = product.sale_price && product.price 
+    ? Math.round(((product.price - product.sale_price) / product.price) * 100) 
+    : 0;
+
+  return (
+    <div className="bg-white rounded-lg overflow-hidden shadow-md group">
+      <div className="relative">
+        {product.sale_price && (
+          <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-sm z-10">
+            SALE! {discountPercentage}% OFF
+          </div>
+        )}
+        <Link href={`/products/${product.slug}`}>
+          <div className="aspect-square overflow-hidden">
+            <img 
+              src={product.image_url} 
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        </Link>
+      </div>
+      
+      <div className="p-4">
+        <Link href={`/products/${product.slug}`}>
+          <h3 className="font-medium text-gray-800 mb-1 group-hover:text-blue-600 transition-colors">
+            {product.name}
+          </h3>
+        </Link>
+        
+        <div className="flex items-center mb-3">
+          {product.sale_price && (
+            <span className="text-gray-400 line-through mr-2">${product.price.toFixed(2)}</span>
+          )}
+          <span className="text-blue-600 font-bold">${(product.sale_price || product.price).toFixed(2)}</span>
+        </div>
+        
+        <Link 
+          href={`/products/${product.slug}`}
+          className="block w-full bg-gray-100 hover:bg-blue-600 text-gray-800 hover:text-white py-2 px-4 text-center text-sm font-medium transition-colors duration-300"
+        >
+          VIEW PRODUCT
+        </Link>
+      </div>
+    </div>
+  );
 }
