@@ -6,9 +6,16 @@ import { CreditCard, Check, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { paymentMethods } from '@/lib/constants/payment-methods'
+import { getOrderById, updateOrderPaymentStatus, updateOrderStatus } from '@/actions/order-actions'
 
 interface OrderDetails {
   total_amount: number
+}
+
+interface OrderResponse {
+  data?: OrderDetails
+  error?: string
+  status?: number
 }
 
 export default function PaymentConfirmationPage({ params }: { params: { id: string } }) {
@@ -27,12 +34,14 @@ export default function PaymentConfirmationPage({ params }: { params: { id: stri
     // Fetch order details
     const fetchOrderDetails = async () => {
       try {
-        const response = await fetch(`/api/orders/${params.id}`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch order details')
+        const result: OrderResponse = await getOrderById(params.id)
+        if (result.error) {
+          toast.error(result.error)
+          return
         }
-        const data = await response.json()
-        setOrderDetails(data)
+        if (result.data) {
+          setOrderDetails(result.data)
+        }
       } catch (error) {
         console.error('Error fetching order details:', error)
         toast.error('Failed to load order details')
@@ -53,34 +62,11 @@ export default function PaymentConfirmationPage({ params }: { params: { id: stri
     setIsProcessing(true)
     
     try {
-      // In a real application, this would integrate with a payment processor
-      // For now, we'll simulate a successful payment
-      
       // Update payment status
-      const paymentResponse = await fetch(`/api/orders/${params.id}/payment-status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ paymentStatus: 'paid' }),
-      })
-      
-      if (!paymentResponse.ok) {
-        throw new Error('Failed to update payment status')
-      }
+      await updateOrderPaymentStatus(params.id, 'paid')
       
       // Update order status
-      const orderResponse = await fetch(`/api/orders/${params.id}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'processing' }),
-      })
-      
-      if (!orderResponse.ok) {
-        throw new Error('Failed to update order status')
-      }
+      await updateOrderStatus(params.id, 'processing')
       
       // Show success message
       toast.success('Payment successful!')

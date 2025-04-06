@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, ArrowRight, Package, CreditCard } from 'lucide-react'
 import Link from 'next/link'
+import { getOrderById, getOrderPaymentStatus, getOrderStatus } from '@/actions/order-actions'
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams()
@@ -13,18 +14,21 @@ export default function CheckoutSuccessPage() {
   const [orderStatus, setOrderStatus] = useState(null)
 
   useEffect(() => {
-    // If no order ID is provided, redirect to home
     if (!orderId) {
       router.push('/')
     } else {
-      // Fetch payment status and order status from API
-      fetch(`/api/orders/${orderId}/payment-status`)
-        .then(response => response.json())
-        .then(data => setPaymentStatus(data.status))
-
-      fetch(`/api/orders/${orderId}/status`)
-        .then(response => response.json())
-        .then(data => setOrderStatus(data.status))
+      // Fetch payment status and order status from server actions
+      getOrderPaymentStatus(orderId).then(result => {
+        if (result.data) {
+          setPaymentStatus(result.data.status)
+        }
+      })
+      
+      getOrderStatus(orderId).then(result => {
+        if (result.data) {
+          setOrderStatus(result.data.status)
+        }
+      })
     }
   }, [orderId, router])
 
