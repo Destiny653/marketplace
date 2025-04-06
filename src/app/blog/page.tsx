@@ -1,16 +1,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { getAllBlogPosts } from '@/lib/mockData/blogData'
+import { Metadata } from 'next'
 
-interface BlogPost {
-  id: string
-  title: string
-  excerpt: string
-  content: string
-  image_url: string
-  created_at: string
-  slug: string
-  status: string
+export const metadata: Metadata = {
+  title: 'Blog | Your Marketplace',
+  description: 'Read the latest articles and updates from our team',
 }
 
 export default function BlogPage() {
@@ -21,7 +16,7 @@ export default function BlogPage() {
       <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {(blogPosts || []).map((post) => (
+        {blogPosts.map((post) => (
           <article key={post.id} className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <Link href={`/blog/${post.slug}`} className="block">
               <div className="relative aspect-[16/9] overflow-hidden">

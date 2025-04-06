@@ -4,7 +4,6 @@ import FeaturedProducts from '@/components/home/FeaturedProducts'
 import SuperDeal from '@/components/home/SuperDeal'
 import PromoBanners from '@/components/home/PromoBanners'
 import CategoryBlocks from '@/components/home/CategoryBlocks'
-import LatestBlog from '@/components/home/LatestBlog'
 
 export default function Home() {
   return (
@@ -55,19 +54,6 @@ export default function Home() {
             </div>
           </div>
           <FeaturedCategories />
-        </div>
-      </section>
-      
-      {/* Latest Blog Posts */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold">LATEST BLOG</h2>
-            <a href="/blog" className="text-blue-600 hover:underline flex items-center">
-              VIEW MORE →
-            </a>
-          </div>
-          <LatestBlog />
         </div>
       </section>
     </main>

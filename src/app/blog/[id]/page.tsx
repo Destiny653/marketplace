@@ -4,14 +4,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { getBlogPostBySlug, getRelatedBlogPosts } from '@/lib/mockData/blogData'
 
-// This is the correct type definition for Next.js 15
-type Props = {
-  params: {
-    id: string
-  }
+type BlogParams = {
+  id: string;
 }
 
-export function generateMetadata({ params }: Props): Metadata {
+export function generateMetadata({ params }: { params: BlogParams }): Metadata {
   const post = getBlogPostBySlug(params.id)
   
   if (!post) {
@@ -26,7 +23,7 @@ export function generateMetadata({ params }: Props): Metadata {
   }
 }
 
-export default function BlogPostPage({ params }: Props) {
+export default function BlogPostPage({ params }: { params: BlogParams }) {
   const post = getBlogPostBySlug(params.id)
   const relatedPosts = getRelatedBlogPosts(params.id, 3)
   
