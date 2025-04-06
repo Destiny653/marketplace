@@ -113,8 +113,8 @@ export default function CheckoutPage() {
       // Clear the cart after successful checkout
       clearCart()
       
-      // Redirect to success page with order ID
-      router.push(`/checkout/success?orderId=${result.orderId}`)
+      // Redirect to payment page with order ID
+      router.push(`/checkout/payment?orderId=${result.orderId}`)
     } catch (error: any) {
       console.error('Checkout error:', error)
       setError(error.message || 'An error occurred during checkout')

@@ -1,19 +1,30 @@
  'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { CheckCircle, ArrowRight, Package } from 'lucide-react'
+import { CheckCircle, ArrowRight, Package, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const orderId = searchParams.get('orderId')
+  const [paymentStatus, setPaymentStatus] = useState(null)
+  const [orderStatus, setOrderStatus] = useState(null)
 
   useEffect(() => {
     // If no order ID is provided, redirect to home
     if (!orderId) {
       router.push('/')
+    } else {
+      // Fetch payment status and order status from API
+      fetch(`/api/orders/${orderId}/payment-status`)
+        .then(response => response.json())
+        .then(data => setPaymentStatus(data.status))
+
+      fetch(`/api/orders/${orderId}/status`)
+        .then(response => response.json())
+        .then(data => setOrderStatus(data.status))
     }
   }, [orderId, router])
 
@@ -42,7 +53,14 @@ export default function CheckoutSuccessPage() {
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Status:</span>
             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-              Processing
+              {orderStatus || 'Processing'}
+            </span>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">Payment Status:</span>
+            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+              {paymentStatus || 'Pending'}
             </span>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { CartItem } from '@/hooks/useCart'
 import { v4 as uuidv4 } from 'uuid'
+import { NextResponse } from 'next/server'
 
 // Function to validate and convert product IDs
 function validateAndConvertProductId(productId: string): string {
@@ -122,9 +123,10 @@ export async function processCheckout(checkoutData: CheckoutData): Promise<Check
       }
     }
     
+    // Return the order ID for payment page redirection
     return {
       success: true,
-      orderId: data
+      orderId: data,
     }
   } catch (error: any) {
     console.error('Checkout process error:', error)
