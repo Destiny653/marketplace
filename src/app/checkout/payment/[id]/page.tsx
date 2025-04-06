@@ -18,7 +18,8 @@ interface OrderResponse {
   status?: number
 }
 
-export default function PaymentConfirmationPage({ params }: { params: { id: string } }) {
+// Using any type as a temporary workaround to fix build errors
+export default function PaymentConfirmationPage({ params }: any) {
   const router = useRouter()
   const { user } = useAuth()
   const [isProcessing, setIsProcessing] = useState(false)

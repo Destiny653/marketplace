@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     const paymentMethodStr = body.paymentMethod as string
     if (paymentMethodStr.startsWith('stripe_')) {
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: '2023-10-16',
+        apiVersion: '2025-03-31.basil',
       })
 
       const paymentIntent = await stripe.paymentIntents.create({
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
       success: true,
       orderId: data,
       paymentIntentId,
-      paymentDetails: paymentMethodStr.startsWith('crypto_') ? await getCryptoPaymentDetails(paymentIntentId) : null,
+      paymentDetails: paymentMethodStr.startsWith('crypto_') && paymentIntentId ? await getCryptoPaymentDetails(paymentIntentId) : null,
       message: 'Order created successfully'
     })
     

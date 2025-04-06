@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { HelpCircle, Book, FileQuestion, MessageSquare, ShoppingBag, Truck, RotateCcw, CreditCard } from 'lucide-react'
+import { HelpCircle, Book, FileQuestion, MessageSquare, ShoppingBag, Truck, RotateCcw, CreditCard, Phone } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Help Center | Marketplace',

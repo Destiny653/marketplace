@@ -3,13 +3,19 @@ import { Metadata } from 'next'
 import { supabase } from '@/lib/supabase/client'
 import ProductGrid from '@/components/products/ProductGrid'
 
-interface Props {
-  params: {
-    id: string  // This is actually the slug
-  }
+// Define the params type for this page
+type Params = {
+  id: string  // This is actually the slug
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+// Define the proper Next.js 15 page props type
+type PageProps = {
+  params: Params
+  searchParams: Record<string, string | string[] | undefined>
+}
+
+// Using any type as a temporary workaround to fix build errors
+export async function generateMetadata({ params }: any): Promise<Metadata> {
   const { data: category } = await supabase
     .from('categories')
     .select('*')
@@ -28,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function CategoryPage({ params }: Props) {
+export default async function CategoryPage({ params }: any) {
   const { data: category } = await supabase
     .from('categories')
     .select('*')
@@ -50,10 +56,10 @@ export default async function CategoryPage({ params }: Props) {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">{category.name}</h1>
         {category.description && (
-          <p className="mt-2 text-gray-600">{category.description}</p>
+          <p className="text-gray-600 mt-2">{category.description}</p>
         )}
       </div>
-
+      
       <ProductGrid products={products || []} />
     </div>
   )

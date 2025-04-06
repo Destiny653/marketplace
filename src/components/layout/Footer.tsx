@@ -147,8 +147,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-gray-400 hover:text-white transition-colors flex items-center">
-                  <span className="mr-2">›</span> Blog
+                <Link href="/contact" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                  <span className="mr-2">›</span> Contact Us
                 </Link>
               </li>
             </ul>
@@ -268,7 +268,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="border-t border-gray-800 pt-8 text-center">
           <p className="text-gray-500">
-            © {currentYear} Marketplace. All rights reserved.
+            {currentYear} Marketplace. All rights reserved.
           </p>
           <div className="flex justify-center space-x-6 mt-4">
             <Link href="/privacy" className="text-gray-500 hover:text-gray-400 transition-colors text-sm">
@@ -285,4 +285,4 @@ export default function Footer() {
       </div>
     </footer>
   )
-}``
+}
