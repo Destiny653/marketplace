@@ -98,7 +98,7 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
             
             <div className="prose prose-lg max-w-none">
-              {post.content.split('\n').map((paragraph, index) => (
+              {post.content.split('\n').map((paragraph: string, index: number) => (
                 <p key={index} className="mb-4">{paragraph}</p>
               ))}
             </div>
