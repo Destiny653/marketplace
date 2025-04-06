@@ -29,6 +29,9 @@ function LoginContent() {
           // Handle invalid token errors specifically
           toast.error('Your session has expired. Please sign in again.')
           // Clear any stored tokens
+          if (!supabase) {
+            throw new Error('Authentication service unavailable');
+          }
           await supabase.auth.signOut()
         } else {
           toast.error(error.message)
@@ -46,6 +49,10 @@ function LoginContent() {
 
   const handleGoogleLogin = async () => {
     try {
+      if (!supabase) {
+        throw new Error('Authentication service unavailable');
+      }
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

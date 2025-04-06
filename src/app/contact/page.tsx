@@ -39,6 +39,10 @@ export default function ContactPage() {
     setLoading(true)
 
     try {
+      if (!supabase) {
+        throw new Error('Database service unavailable');
+      }
+      
       // Format the phone number with country code
       const fullPhoneNumber = `${formData.countryCode} ${formData.phone}`
 

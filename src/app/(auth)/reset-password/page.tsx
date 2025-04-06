@@ -18,6 +18,12 @@ export default function ResetPasswordPage() {
   // Check if user has a valid recovery session
   useEffect(() => {
     const checkSession = async () => {
+      if (!supabase) {
+        toast.error('Authentication service unavailable');
+        router.push('/login');
+        return;
+      }
+      
       const { data, error } = await supabase.auth.getSession()
       if (error || !data.session) {
         toast.error('Invalid or expired password reset link')
@@ -45,6 +51,10 @@ export default function ResetPasswordPage() {
     }
 
     try {
+      if (!supabase) {
+        throw new Error('Authentication service unavailable');
+      }
+      
       const { error } = await supabase.auth.updateUser({
         password: formData.password
       })

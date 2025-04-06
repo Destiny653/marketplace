@@ -10,6 +10,39 @@ export const metadata: Metadata = {
 }
 
 export default async function DealsPage() {
+  // Check if supabase client is available
+  if (!supabase) {
+    // Return empty products for build time
+    // This will be replaced with actual data during runtime
+    return (
+      <div className="container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-amber-400 to-amber-500 rounded-xl p-8 mb-10 text-white">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-blue-900">SUPER DEALS!!</h1>
+          <p className="text-xl md:text-2xl mb-6 max-w-2xl font-semibold">
+            UPTO 15% DISCOUNT on our best products
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center bg-blue-900 px-4 py-2 rounded-full text-white">
+              <Tag className="h-5 w-5 mr-2" />
+              <span>Limited time offers</span>
+            </div>
+            <div className="flex items-center bg-blue-900 px-4 py-2 rounded-full text-white">
+              <Clock className="h-5 w-5 mr-2" />
+              <span>Hurry before they're gone!</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Empty state for build time */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Today's Super Deals</h2>
+          <p className="text-center py-8 text-gray-500">Loading deals...</p>
+        </div>
+      </div>
+    );
+  }
+  
   // Fetch products with sale prices
   const { data: saleProducts, error } = await supabase
     .from('products')

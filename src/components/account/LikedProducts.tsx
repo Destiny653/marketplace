@@ -25,6 +25,10 @@ export default function LikedProducts() {
       try {
         setLoadingProducts(true)
         
+        if (!supabase) {
+          throw new Error('Database service unavailable');
+        }
+        
         // Get all products
         const { data: allProducts, error: productsError } = await supabase
           .from('products')

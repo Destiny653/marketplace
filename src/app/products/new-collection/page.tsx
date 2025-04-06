@@ -8,6 +8,25 @@ export const metadata: Metadata = {
 }
 
 export default async function NewCollectionPage() {
+  if (!supabase) {
+    // Return empty products for build time
+    // This will be replaced with actual data during runtime
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">New Collection</h1>
+          <p className="mt-2 text-gray-600">
+            Explore our latest arrivals and be the first to discover our newest products.
+          </p>
+        </div>
+        
+        <div className="text-center py-12">
+          <p className="text-gray-500">Loading new products...</p>
+        </div>
+      </div>
+    );
+  }
+  
   const { data: products, error } = await supabase
     .from('products')
     .select('*')

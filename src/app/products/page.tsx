@@ -33,6 +33,20 @@ const createSearchParams = (params: SearchParams, newPage: number) => {
 
 // Using any type as a temporary workaround to fix build errors
 export default async function ProductsPage({ searchParams }: any) {
+  // Check if supabase client is available
+  if (!supabase) {
+    // Return empty products for build time
+    // This will be replaced with actual data during runtime
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8">Products</h1>
+        <div className="text-center py-12">
+          <p className="text-gray-500">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+  
   // Destructure and await searchParams
   const category = await Promise.resolve(searchParams.category)
   const search = await Promise.resolve(searchParams.search)

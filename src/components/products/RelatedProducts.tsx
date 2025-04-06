@@ -22,6 +22,12 @@ export default function RelatedProducts({
   useEffect(() => {
     const fetchRelatedProducts = async () => {
       try {
+        if (!supabase) {
+          console.error('Database service unavailable');
+          setLoading(false);
+          return;
+        }
+        
         const { data } = await supabase
           .from('products')
           .select('*')

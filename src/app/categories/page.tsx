@@ -20,6 +20,12 @@ function CategoriesContent() {
   useEffect(() => {
     async function fetchCategories() {
       try {
+        if (!supabase) {
+          console.error('Database service unavailable');
+          setLoading(false);
+          return;
+        }
+        
         const { data } = await supabase.from('categories').select('*')
         setCategories(data || [])
       } catch (error) {

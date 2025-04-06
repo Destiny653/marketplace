@@ -8,6 +8,25 @@ export const metadata: Metadata = {
 }
 
 export default async function OnSaleProductsPage() {
+  if (!supabase) {
+    // Return empty products for build time
+    // This will be replaced with actual data during runtime
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">On Sale Products</h1>
+          <p className="mt-2 text-gray-600">
+            Discover our best deals with up to 70% off. Limited time offers on premium products.
+          </p>
+        </div>
+        
+        <div className="text-center py-12">
+          <p className="text-gray-500">Loading sale products...</p>
+        </div>
+      </div>
+    );
+  }
+  
   const { data: products, error } = await supabase
     .from('products')
     .select('*')

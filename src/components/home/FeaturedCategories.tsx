@@ -33,6 +33,12 @@ export default function FeaturedCategories() {
 
   useEffect(() => {
     const fetchCategoriesAndProducts = async () => {
+      if (!supabase) {
+        console.error('Database service unavailable');
+        setLoading(false);
+        return;
+      }
+      
       // First fetch categories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')

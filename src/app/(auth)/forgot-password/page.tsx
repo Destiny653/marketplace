@@ -16,6 +16,10 @@ export default function ForgotPasswordPage() {
     setLoading(true)
 
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not available');
+      }
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       })

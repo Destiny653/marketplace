@@ -18,7 +18,18 @@ export function useProducts(options: UseProductsOptions = {}) {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        let query = supabase
+        
+        // Explicitly check if supabase is null or undefined
+        if (supabase === null || supabase === undefined) {
+          setError(new Error('Database service unavailable'));
+          setLoading(false);
+          return;
+        }
+        
+        // TypeScript should now recognize that supabase is not null
+        const supabaseClient = supabase;
+        
+        let query = supabaseClient
           .from('products')
           .select('*, categories(*)')
 

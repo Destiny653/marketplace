@@ -34,6 +34,12 @@ export default function SuperDeal() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        if (!supabase) {
+          console.error('Database service unavailable');
+          setLoading(false);
+          return;
+        }
+        
         const { data, error } = await supabase
           .from('products')
           .select('*')

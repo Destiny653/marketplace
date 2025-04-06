@@ -16,6 +16,13 @@ type PageProps = {
 
 // Using any type as a temporary workaround to fix build errors
 export async function generateMetadata({ params }: any): Promise<Metadata> {
+  if (!supabase) {
+    return {
+      title: 'Category - Loading',
+      description: 'Loading category details...',
+    };
+  }
+  
   const { data: category } = await supabase
     .from('categories')
     .select('*')
@@ -35,6 +42,23 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params }: any) {
+  if (!supabase) {
+    // Return placeholder UI for build time
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Loading Category...</h1>
+          <p className="text-gray-600 mt-2">Please wait while we load the category details.</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-gray-100 rounded-lg h-64 animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  
   const { data: category } = await supabase
     .from('categories')
     .select('*')
