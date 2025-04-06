@@ -1,10 +1,16 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
+
+type RouteParams = {
+  params: {
+    id: string
+  }
+}
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: RouteParams
 ) {
   const supabase = createRouteHandlerClient({ cookies })
   
@@ -23,7 +29,7 @@ export async function GET(
     const { data: order, error } = await supabase
       .from('orders')
       .select('id, user_id, payment_status')
-      .eq('id', context.params.id)
+      .eq('id', params.id)
       .single()
     
     if (error) {
@@ -62,7 +68,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: RouteParams
 ) {
   const supabase = createRouteHandlerClient({ cookies })
   
@@ -83,7 +89,7 @@ export async function PATCH(
     const { data, error } = await supabase
       .from('orders')
       .update({ payment_status: paymentStatus })
-      .eq('id', context.params.id)
+      .eq('id', params.id)
       .eq('user_id', session.user.id)
       .select()
     
