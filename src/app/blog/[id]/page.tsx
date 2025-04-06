@@ -1,16 +1,32 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Image from 'next/image'
-import { supabase } from '@/lib/supabase/client'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 
-interface PageProps {
+type BlogPost = {
+  id: string
+  title: string
+  content: string
+  excerpt: string
+  author: string
+  image_url: string
+  created_at: string
+  slug: string
+  status: string
+}
+
+// This is the correct type definition for Next.js 15
+type Props = {
   params: {
     id: string
   }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const supabase = createServerComponentClient({ cookies })
+  
   const { data: post } = await supabase
     .from('blog_posts')
     .select('*')
@@ -29,7 +45,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function BlogPostPage({ params }: PageProps) {
+export default async function BlogPostPage({ params }: Props) {
+  const supabase = createServerComponentClient({ cookies })
+  
   const { data: post } = await supabase
     .from('blog_posts')
     .select('*')
@@ -49,63 +67,70 @@ export default async function BlogPostPage({ params }: PageProps) {
     .limit(3)
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-12">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">{post.title}</h1>
-          <div className="flex items-center text-gray-500 text-sm mb-6">
-            <span className="mr-4">
-              {new Date(post.created_at).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </span>
+        <Link 
+          href="/blog" 
+          className="text-blue-600 hover:text-blue-800 mb-6 inline-block"
+        >
+          ← Back to all posts
+        </Link>
+        
+        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+          {post.image_url && (
+            <div className="relative w-full h-96">
+              <Image
+                src={post.image_url}
+                alt={post.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          )}
+          
+          <div className="p-6 md:p-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">{post.title}</h1>
+            
+            <div className="flex items-center text-gray-600 mb-6">
+              <span className="mr-4">By {post.author}</span>
+              <span>{new Date(post.created_at).toLocaleDateString()}</span>
+            </div>
+            
+            <div className="prose prose-lg max-w-none">
+              {post.content.split('\n').map((paragraph, index) => (
+                <p key={index} className="mb-4">{paragraph}</p>
+              ))}
+            </div>
           </div>
         </div>
-
-        <div className="mb-8 relative aspect-[16/9] overflow-hidden rounded-lg">
-          <Image
-            src={post.image_url}
-            alt={post.title}
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-
-        <div className="prose max-w-none mb-12">
-          <div dangerouslySetInnerHTML={{ __html: post.content }} />
-        </div>
-
+        
         {relatedPosts && relatedPosts.length > 0 && (
-          <div className="mt-12 border-t pt-8">
+          <div className="mt-12">
             <h2 className="text-2xl font-bold mb-6">Related Posts</h2>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {relatedPosts.map((relatedPost) => (
+              {relatedPosts.map((relatedPost: BlogPost) => (
                 <Link 
                   key={relatedPost.id} 
                   href={`/blog/${relatedPost.slug}`}
-                  className="block group"
+                  className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <div className="bg-white rounded-lg overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
-                    <div className="relative aspect-[16/9] overflow-hidden">
+                  {relatedPost.image_url && (
+                    <div className="relative w-full h-48">
                       <Image
                         src={relatedPost.image_url}
                         alt={relatedPost.title}
                         fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover"
                       />
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-medium text-lg text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
-                        {relatedPost.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        {relatedPost.excerpt}
-                      </p>
-                    </div>
+                  )}
+                  
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-2">{relatedPost.title}</h3>
+                    <p className="text-gray-600 text-sm mb-2">{new Date(relatedPost.created_at).toLocaleDateString()}</p>
+                    <p className="text-gray-700 line-clamp-2">{relatedPost.excerpt}</p>
                   </div>
                 </Link>
               ))}
