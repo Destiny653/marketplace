@@ -16,11 +16,17 @@ export default function ForgotPasswordPage() {
     setLoading(true)
 
     try {
-      if (!supabase) {
-        throw new Error('Supabase client is not available');
+      // Explicitly check if supabase is null or undefined
+      if (supabase === null || supabase === undefined) {
+        toast.error('Authentication service unavailable');
+        setLoading(false);
+        return;
       }
       
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      // TypeScript should now recognize that supabase is not null
+      const supabaseClient = supabase;
+      
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       })
 

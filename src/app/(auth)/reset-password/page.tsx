@@ -18,13 +18,17 @@ export default function ResetPasswordPage() {
   // Check if user has a valid recovery session
   useEffect(() => {
     const checkSession = async () => {
-      if (!supabase) {
+      // Explicitly check if supabase is null or undefined
+      if (supabase === null || supabase === undefined) {
         toast.error('Authentication service unavailable');
         router.push('/login');
         return;
       }
       
-      const { data, error } = await supabase.auth.getSession()
+      // TypeScript should now recognize that supabase is not null
+      const supabaseClient = supabase;
+      
+      const { data, error } = await supabaseClient.auth.getSession()
       if (error || !data.session) {
         toast.error('Invalid or expired password reset link')
         router.push('/login')
@@ -51,11 +55,17 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      if (!supabase) {
-        throw new Error('Authentication service unavailable');
+      // Explicitly check if supabase is null or undefined
+      if (supabase === null || supabase === undefined) {
+        toast.error('Authentication service unavailable');
+        setLoading(false);
+        return;
       }
       
-      const { error } = await supabase.auth.updateUser({
+      // TypeScript should now recognize that supabase is not null
+      const supabaseClient = supabase;
+      
+      const { error } = await supabaseClient.auth.updateUser({
         password: formData.password
       })
 

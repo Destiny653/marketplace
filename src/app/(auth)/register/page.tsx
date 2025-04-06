@@ -35,11 +35,15 @@ export default function RegisterPage() {
     }
 
     try {
-      if (!supabase) {
-        throw new Error('Authentication service unavailable');
+      if (supabase === null || supabase === undefined) {
+        toast.error('Authentication service unavailable');
+        setLoading(false);
+        return;
       }
       
-      const { error } = await supabase.auth.signUp({
+      const supabaseClient = supabase;
+      
+      const { error } = await supabaseClient.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -64,11 +68,14 @@ export default function RegisterPage() {
 
   const handleGoogleSignUp = async () => {
     try {
-      if (!supabase) {
-        throw new Error('Authentication service unavailable');
+      if (supabase === null || supabase === undefined) {
+        toast.error('Authentication service unavailable');
+        return;
       }
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const supabaseClient = supabase;
+      
+      const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
