@@ -37,6 +37,12 @@ export default function FeaturedProducts({ title, viewMoreLink, limit = 6, produ
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        if (!supabase) {
+          console.error('Supabase client is not available');
+          setLoading(false);
+          return;
+        }
+        
         let query = supabase
           .from('products')
           .select('*')

@@ -2,21 +2,31 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 
-// Create a Supabase client with admin privileges
-// This will bypass RLS policies
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+// Only create the client when the function is actually called (not during build)
+const getSupabaseAdmin = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase environment variables are missing');
   }
-);
+  
+  return createClient(
+    supabaseUrl,
+    supabaseServiceKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  );
+};
 
 export async function GET(request: Request) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    
     // Categories with UUIDs
     const categoryIds = {
       electronics: uuidv4(),

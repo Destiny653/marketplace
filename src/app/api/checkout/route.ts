@@ -79,7 +79,13 @@ export async function POST(request: Request) {
 
     const paymentMethodStr = body.paymentMethod as string
     if (paymentMethodStr.startsWith('stripe_')) {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      const stripeKey = process.env.STRIPE_SECRET_KEY;
+      
+      if (!stripeKey) {
+        throw new Error('Stripe secret key is missing');
+      }
+      
+      const stripe = new Stripe(stripeKey, {
         apiVersion: '2025-03-31.basil',
       })
 
