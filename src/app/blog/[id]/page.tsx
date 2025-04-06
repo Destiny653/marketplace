@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 interface PageProps {
   params: {
-    id: string | string[]
+    id: string
   }
 }
 
