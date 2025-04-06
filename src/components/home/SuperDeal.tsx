@@ -17,6 +17,7 @@ interface Product {
   slug: string
   category_id: string
   status: string
+  stock_quantity: number
 }
 
 export default function SuperDeal() {
@@ -32,21 +33,27 @@ export default function SuperDeal() {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('status', 'active')
-        .not('sale_price', 'is', null)
-        .order('sale_price', { ascending: true })
-        .limit(5)
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('status', 'active')
+          .not('sale_price', 'is', null)
+          .gt('stock_quantity', 0) // Only show products that are in stock
+          .order('sale_price', { ascending: true })
+          .limit(5)
 
-      if (error) {
-        console.error('Error fetching super deal products:', error)
-        return
+        if (error) {
+          console.error('Error fetching super deal products:', error)
+          return
+        }
+
+        setProducts(data || [])
+        setLoading(false)
+      } catch (err) {
+        console.error('Failed to fetch products:', err)
+        setLoading(false)
       }
-
-      setProducts(data || [])
-      setLoading(false)
     }
 
     fetchProducts()
@@ -71,17 +78,22 @@ export default function SuperDeal() {
     return () => clearInterval(timer)
   }, [])
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: Product) => {
+    // Check if product is in stock before adding to cart
+    if (product.stock_quantity <= 0) {
+      alert('Sorry, this product is out of stock.')
+      return
+    }
+    
     addItem({
       id: product.id,
       name: product.name,
       price: product.sale_price || product.price,
       image: product.image_url,
-      quantity: 1
+      quantity: 1,
+      stock: product.stock_quantity
     })
   }
-
-
 
   if (loading) {
     return (
@@ -164,11 +176,24 @@ export default function SuperDeal() {
                   <span className="text-blue-600 font-bold">${product?.sale_price?.toFixed(2)}</span>
                 </div>
                 
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-sm ${product.stock_quantity > 5 ? 'text-green-600' : 'text-orange-500'}`}>
+                    {product.stock_quantity > 5 
+                      ? 'In Stock' 
+                      : `Only ${product.stock_quantity} left`}
+                  </span>
+                </div>
+                
                 <button
                   onClick={() => handleAddToCart(product)}
-                  className="w-full bg-gray-100 hover:bg-blue-600 text-gray-800 hover:text-white py-2 px-4 text-sm font-medium transition-colors duration-300"
+                  disabled={product.stock_quantity <= 0}
+                  className={`w-full py-2 px-4 text-sm font-medium transition-colors duration-300 ${
+                    product.stock_quantity <= 0 
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                      : 'bg-gray-100 hover:bg-blue-600 text-gray-800 hover:text-white'
+                  }`}
                 >
-                  ADD TO CART
+                  {product.stock_quantity <= 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
                 </button>
               </div>
             </div>

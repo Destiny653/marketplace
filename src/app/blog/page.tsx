@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { supabase } from '@/lib/supabase/client'
+import { getAllBlogPosts } from '@/lib/mockData/blogData'
 
 interface BlogPost {
   id: string
@@ -13,16 +13,8 @@ interface BlogPost {
   status: string
 }
 
-export default async function BlogPage() {
-  const { data: blogPosts, error } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('status', 'published')
-    .order('created_at', { ascending: false })
-  
-  if (error) {
-    console.error('Error fetching blog posts:', error)
-  }
+export default function BlogPage() {
+  const blogPosts = getAllBlogPosts()
 
   return (
     <div className="container mx-auto px-4 py-8">

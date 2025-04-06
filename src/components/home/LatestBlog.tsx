@@ -3,38 +3,23 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { supabase } from '@/lib/supabase/client'
-
-interface BlogPost {
-  id: string
-  title: string
-  excerpt: string
-  image_url: string
-  slug: string
-  created_at: string
-  status: string
-}
+import { getLatestBlogPosts, MockBlogPost } from '@/lib/mockData/blogData'
 
 export default function LatestBlog() {
-  const [posts, setPosts] = useState<BlogPost[]>([])
+  const [posts, setPosts] = useState<MockBlogPost[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .limit(4)
-
-      if (error) {
-        console.error('Error fetching blog posts:', error)
-        return
+    // Use the mock data instead of fetching from the database
+    const fetchPosts = () => {
+      try {
+        const latestPosts = getLatestBlogPosts(4)
+        setPosts(latestPosts)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error getting blog posts:', error)
+        setLoading(false)
       }
-
-      setPosts(data || [])
-      setLoading(false)
     }
 
     fetchPosts()
