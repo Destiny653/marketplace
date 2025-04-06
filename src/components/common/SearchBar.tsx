@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 
-export default function SearchBar() {
+function SearchBarContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('search') || ''
@@ -31,19 +31,18 @@ export default function SearchBar() {
   }
 
   return (
-    <div className="relative max-w-md w-full">
+    <div className="relative w-full max-w-md">
       <div className="relative">
         <input
           type="text"
+          placeholder="Search products..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search products..."
-          className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full py-2 pl-10 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-        
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
         {searchQuery && (
-          <button
+          <button 
             onClick={clearSearch}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
@@ -52,5 +51,19 @@ export default function SearchBar() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function SearchBar() {
+  return (
+    <Suspense fallback={
+      <div className="relative w-full max-w-md">
+        <div className="relative">
+          <div className="w-full h-10 bg-gray-100 animate-pulse rounded-md"></div>
+        </div>
+      </div>
+    }>
+      <SearchBarContent />
+    </Suspense>
   )
 }

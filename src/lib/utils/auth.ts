@@ -1,4 +1,6 @@
-import { type NextRouter } from 'next/navigation'
+interface RouterInterface {
+  push: (url: string) => void;
+}
 
 /**
  * Redirects the user after login
@@ -7,7 +9,7 @@ import { type NextRouter } from 'next/navigation'
  * @param defaultPath Default path to redirect to if no redirectTo is specified
  */
 export function handleAuthRedirect(
-  router: NextRouter,
+  router: RouterInterface,
   searchParams: URLSearchParams,
   defaultPath: string = '/'
 ): void {

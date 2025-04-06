@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
   redirectTo?: string
 }
 
-export default function ProtectedRoute({ 
+function ProtectedRouteContent({ 
   children, 
   redirectTo = '/login' 
 }: ProtectedRouteProps) {
@@ -22,7 +22,7 @@ export default function ProtectedRoute({
   useEffect(() => {
     // Only take action once loading is complete
     if (!loading) {
-  if (!user) {
+      if (!user) {
         // Get the current path to redirect back after login
         const currentPath = window.location.pathname
         const redirectPath = `${redirectTo}?redirectTo=${encodeURIComponent(currentPath)}`
@@ -31,8 +31,8 @@ export default function ProtectedRoute({
         router.push(redirectPath)
       } else {
         setIsAuthorized(true)
-  }
-}
+      }
+    }
   }, [user, loading, router, redirectTo])
 
   if (loading || isAuthorized === null) {
@@ -48,4 +48,16 @@ export default function ProtectedRoute({
   }
 
   return <>{children}</>
+}
+
+export default function ProtectedRoute(props: ProtectedRouteProps) {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    }>
+      <ProtectedRouteContent {...props} />
+    </Suspense>
+  )
 }

@@ -1,12 +1,12 @@
  'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, ArrowRight, Package, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { getOrderById, getOrderPaymentStatus, getOrderStatus } from '@/actions/order-actions'
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const orderId = searchParams.get('orderId')
@@ -123,5 +123,13 @@ export default function CheckoutSuccessPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-10">Loading order details...</div>}>
+      <CheckoutSuccessContent />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useProductLikes } from '@/hooks/useProductLikes'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import ProductCard from '@/components/products/ProductCard'
@@ -8,7 +8,7 @@ import { Product } from '@/lib/supabase/types'
 import Link from 'next/link'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 
-export default function WishlistPage() {
+function WishlistContent() {
   const { likedProductIds, loading: likesLoading, refreshLikes } = useProductLikes()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -88,5 +88,13 @@ export default function WishlistPage() {
         {renderContent()}
       </div>
     </ProtectedRoute>
+  )
+}
+
+export default function WishlistPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-10">Loading wishlist...</div>}>
+      <WishlistContent />
+    </Suspense>
   )
 }

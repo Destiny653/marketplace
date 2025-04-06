@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
@@ -28,7 +28,7 @@ const priceRanges: PriceRange[] = [
   { min: 500, max: Infinity, label: '$500+' },
 ]
 
-export default function FilterSection({ categories }: FilterSectionProps) {
+function FilterSectionContent({ categories }: FilterSectionProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -163,5 +163,13 @@ export default function FilterSection({ categories }: FilterSectionProps) {
         </button>
       )}
     </div>
+  )
+}
+
+export default function FilterSection(props: FilterSectionProps) {
+  return (
+    <Suspense fallback={<div className="animate-pulse h-64 bg-gray-100 rounded-lg"></div>}>
+      <FilterSectionContent {...props} />
+    </Suspense>
   )
 }

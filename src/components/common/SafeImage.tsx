@@ -24,7 +24,8 @@ export default function SafeImage({
     }
   }
 
-  const imageUrl = isValidImageUrl(src) ? src : fallbackSrc
+  // Ensure imageUrl is always a string
+  const imageUrl = isValidImageUrl(src) ? src as string : fallbackSrc
 
   return <Image src={imageUrl} alt={alt} {...props} />
 }
