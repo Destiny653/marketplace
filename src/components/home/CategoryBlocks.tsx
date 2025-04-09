@@ -89,7 +89,7 @@ export default function CategoryBlocks() {
           className="group block text-center"
         >
           <div className="bg-white rounded-lg overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-shadow">
-            <div className="relative aspect-square">
+            <div className="relative aspect-square aspect-[5/4] group">
               <Image
                 src={category.image_url}
                 alt={category.name}

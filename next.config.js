@@ -1,12 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      'fadfwafokisfdatjcteu.supabase.co',
-      'images.unsplash.com',  // Added Unsplash domain
-      'placehold.co', 
-      'example.com'
-    ],
     remotePatterns: [
       {
         protocol: 'https',
@@ -15,20 +9,18 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',  // Added Unsplash remote pattern
+        hostname: 'images.unsplash.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'placehold.co',
         pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'example.com',
-        pathname: '/**',
       }
     ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 }
 

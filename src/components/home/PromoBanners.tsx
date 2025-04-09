@@ -196,7 +196,7 @@ export default function PromoBanners() {
                   {banner.buttonText} →
                 </Link>
               </div>
-              <div className="w-1/2 relative">
+              <div className="w-1/2 relative aspect-[5/4] group">
                 <Image
                   src={banner.image}
                   alt={banner.title}

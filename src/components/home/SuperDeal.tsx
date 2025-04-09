@@ -147,62 +147,70 @@ export default function SuperDeal() {
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-md">
+            <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-md relative">
+            {/* Sale Badge */}
+            {product.sale_price && (
               <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-sm z-10">
                 SALE!
               </div>
-              
-              <Link href={`/products/${product.slug}`} className="block">
-                <div className="relative aspect-square overflow-hidden">
-                  <Image
-                    src={product.image_url}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
-                    className="object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
+            )}
+            
+            {/* Product Image */}
+            <Link href={`/products/${product.slug}`} className="block">
+              <div className="relative w-full aspect-[5/4] overflow-hidden group">
+                <Image
+                  src={product?.image_url}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
+                  priority={false}
+                />
+              </div>
+            </Link>
+            
+            {/* Product Info */}
+            <div className="p-4">
+              <Link href={`/products/${product.slug}`}>
+                <h3 className="font-medium text-gray-800 mb-1 hover:text-blue-600 transition-colors line-clamp-2">
+                  {product.name}
+                </h3>
               </Link>
               
-              <div className="p-3">
-                <Link href={`/products/${product.slug}`}>
-                  <h3 className="font-medium text-gray-800 mb-1 hover:text-blue-600 transition-colors">
-                    {product.name}
-                  </h3>
-                </Link>
-                
-                <div className="flex mb-2">
-                  <StarRating rating={product.avg_rating} size="sm" />
-                </div>
-                
-                <div className="flex items-center mb-3">
-                  {product.sale_price && (
-                    <span className="text-gray-400 line-through mr-2">${product.price.toFixed(2)}</span>
-                  )}
-                  <span className="text-blue-600 font-bold">${product?.sale_price?.toFixed(2)}</span>
-                </div>
-                
-                <div className="flex items-center justify-between mb-3">
-                  <span className={`text-sm ${product.stock_quantity > 5 ? 'text-green-600' : 'text-orange-500'}`}>
-                    {product.stock_quantity > 5 
-                      ? 'In Stock' 
-                      : `Only ${product.stock_quantity} left`}
-                  </span>
-                </div>
-                
-                <button
-                  onClick={() => handleAddToCart(product)}
-                  disabled={product.stock_quantity <= 0}
-                  className={`w-full py-2 px-4 text-sm font-medium transition-colors duration-300 ${
-                    product.stock_quantity <= 0 
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                      : 'bg-gray-100 hover:bg-blue-600 text-gray-800 hover:text-white'
-                  }`}
-                >
-                  {product.stock_quantity <= 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
-                </button>
+              <div className="flex mb-2">
+                <StarRating rating={product.avg_rating} size="sm" />
               </div>
+              
+              <div className="flex items-center mb-3">
+                {product.sale_price && product.sale_price < product.price && (
+                  <span className="text-gray-400 line-through mr-2">${product.price.toFixed(2)}</span>
+                )}
+                <span className="text-blue-600 font-bold">
+                  ${(product.sale_price || product.price).toFixed(2)}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-sm ${product.stock_quantity > 5 ? 'text-green-600' : 'text-orange-500'}`}>
+                  {product.stock_quantity > 5 
+                    ? 'In Stock' 
+                    : `Only ${product.stock_quantity} left`}
+                </span>
+              </div>
+              
+              <button
+                onClick={() => handleAddToCart(product)}
+                disabled={product.stock_quantity <= 0}
+                className={`w-full py-2 px-4 text-sm font-medium transition-colors duration-300 rounded ${
+                  product.stock_quantity <= 0 
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                    : 'bg-gray-100 hover:bg-blue-600 text-gray-800 hover:text-white'
+                }`}
+              >
+                {product.stock_quantity <= 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
+              </button>
             </div>
+          </div>
           ))}
         </div>
       </div>

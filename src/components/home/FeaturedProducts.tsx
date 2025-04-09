@@ -146,14 +146,14 @@ export default function FeaturedProducts({ title, viewMoreLink, limit = 6, produ
             
             {/* Product image with overlay actions */}
             <div className="relative overflow-hidden">
-              <Link href={`/products/${product.slug}`}>
-                <div className="aspect-square relative">
+              <Link href={`/products/slug/${product.slug}`}>
+                <div className="aspect-square relative aspect-[5/4]">
                   <Image
                     src={product.image_url}
-                    alt={product.name}
+                    alt={product.name} 
                     fill
                     sizes="(max-width: 768px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300 "
                   />
                 </div>
               </Link>
@@ -169,7 +169,7 @@ export default function FeaturedProducts({ title, viewMoreLink, limit = 6, produ
                   <ShoppingCart size={18} />
                 </button>
                 <Link 
-                  href={`/products/${product.slug}`} 
+                  href={`/products/slug/${product.slug}`} 
                   className="bg-white p-2 rounded-full hover:bg-blue-600 hover:text-white transition-colors"
                   title="View details"
                 >
@@ -180,7 +180,7 @@ export default function FeaturedProducts({ title, viewMoreLink, limit = 6, produ
             
             {/* Product info */}
             <div className="p-3">
-              <Link href={`/products/${product.slug}`} className="block">
+              <Link href={`/products/slug/${product.slug}`} className="block">
                 <h3 className="font-medium text-gray-800 mb-1 truncate hover:text-blue-600 transition-colors">
                   {product.name}
                 </h3>

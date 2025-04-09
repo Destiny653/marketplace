@@ -88,7 +88,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Product Image */}
-      <div className="relative aspect-square">
+      <div className="relative aspect-square ">
         <Image
           src={imageUrl}
           alt={product.name}

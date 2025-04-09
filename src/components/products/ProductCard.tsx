@@ -30,20 +30,20 @@ export default function ProductCard({ product }: ProductCardProps) {
       showAuthModal('cart')
       return
     }
-    
+
     // Check if product is in stock
     if (product.stock_quantity <= 0) {
       toast.error(`${product.name} is out of stock`)
       return
     }
-    
-    addItem({ 
-      ...product, 
-      image: product.image_url, 
+
+    addItem({
+      ...product,
+      image: product.image_url,
       quantity: 1,
-      stock: product.stock_quantity 
+      stock: product.stock_quantity
     })
-    
+
     // Add notification when product is added to cart
     toast.success(`${product.name} added to cart`, {
       description: '1 item added',
@@ -74,10 +74,11 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       <Link href={`/products/${product.id}`} className="block relative">
-        <div className="aspect-square relative overflow-hidden">
-          <img
+        <div className="aspect-square relative overflow-hidden aspect-[3/4] group">
+          <Image
+            fill
             src={product?.image_url}
-            alt={product?.name} 
+            alt={product?.name}
             className="object-cover transition-transform group-hover:scale-105"
           />
           {product.is_on_sale && (
@@ -95,11 +96,10 @@ export default function ProductCard({ product }: ProductCardProps) {
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-4 w-4 ${
-                    i < Math.floor(product.avg_rating)
+                  className={`h-4 w-4 ${i < Math.floor(product.avg_rating)
                       ? 'text-yellow-400 fill-current'
                       : 'text-gray-300'
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -138,19 +138,17 @@ export default function ProductCard({ product }: ProductCardProps) {
         <button
           onClick={handleToggleLike}
           disabled={isLikeLoading}
-          className={`p-2 rounded-full shadow-md ${
-            liked 
-              ? 'bg-red-50 hover:bg-red-100' 
+          className={`p-2 rounded-full shadow-md ${liked
+              ? 'bg-red-50 hover:bg-red-100'
               : 'bg-white hover:bg-gray-50'
-          }`}
+            }`}
           aria-label={liked ? "Remove from liked items" : "Add to liked items"}
         >
-          <Heart 
-            className={`h-5 w-5 ${
-              liked 
-                ? 'text-red-500 fill-red-500' 
+          <Heart
+            className={`h-5 w-5 ${liked
+                ? 'text-red-500 fill-red-500'
                 : 'text-gray-600'
-            }`} 
+              }`}
           />
         </button>
         <button

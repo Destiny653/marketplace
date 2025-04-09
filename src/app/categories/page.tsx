@@ -25,7 +25,7 @@ function CategoriesContent() {
           setLoading(false);
           return;
         }
-        
+
         const { data } = await supabase.from('categories').select('*')
         setCategories(data || [])
       } catch (error) {

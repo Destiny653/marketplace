@@ -93,7 +93,7 @@ export default function FeaturedCategories() {
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {categories.map((category) => {
         const products = categoryProducts[category.id] || []
-        const product = products[0]
+        const product = products[1]
 
         return (
           <Link 
@@ -102,7 +102,7 @@ export default function FeaturedCategories() {
             className="group block"
           >
             <div className="bg-white rounded-lg overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
-              <div className="relative aspect-square">
+              <div className="relative aspect-square aspect-[5/4] group">
                 <Image
                   src={category.image_url}
                   alt={category.name}
