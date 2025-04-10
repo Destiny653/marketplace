@@ -5,17 +5,11 @@ import RelatedProductsSlug from '@/components/products/RelatedProductsSlug'
 import type { Metadata } from 'next'
 
 // Define your params type
-interface PageParams {
-  slug: string
+type Props = {
+  params: { slug: string }
 }
 
-// Define the expected props type
-interface PageProps {
-  params: PageParams
-  searchParams?: { [key: string]: string | string[] | undefined }
-}
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Your implementation
   if (!supabase) {
     return {
@@ -45,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function ProductSlugPage({ params }: { params: PageParams}) {
+export default async function ProductSlugPage({ params }: Props) {
   if (!supabase) {
     // Return placeholder UI for build time
     return (
