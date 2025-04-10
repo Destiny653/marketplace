@@ -15,6 +15,14 @@ export interface Database {
             is_featured: boolean
             is_on_sale: boolean
             sale_price?: number
+            brand?: string
+            rating?: number
+            review_count ?: number
+            sku?: string
+            variants?: string[]
+            categories?: {
+              name: string
+            }
           }
           Insert: {
             name: string

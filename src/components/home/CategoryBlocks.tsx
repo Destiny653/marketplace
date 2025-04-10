@@ -99,11 +99,11 @@ export default function CategoryBlocks() {
               />
             </div>
           </div>
-          <h3 className="font-medium text-gray-800 uppercase mb-1">
+          <h3 className="font-medium text-blue-800 uppercase mb-1">
             {category.name} ({category.product_count})
           </h3>
           {category.description && (
-            <p className="text-sm text-gray-600 line-clamp-2">{category.description}</p>
+            <p className="text-sm text-blue-600 line-clamp-2">{category.description}</p>
           )}
         </Link>
       ))}

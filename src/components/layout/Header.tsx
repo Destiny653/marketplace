@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ShoppingCart, User, Heart, MessageSquare, Search, Menu, X, ChevronDown, Phone, Mail, MapPin } from 'lucide-react'
 import CartButton from '@/components/layout/CartButton'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { ModeToggle } from '@/lib/utils/ThemeToggle'
 
 interface Category {
   id: string
@@ -81,7 +82,7 @@ export default function Header() {
   }, [isCategoryDropdownOpen])
 
   return (
-    <header className="w-full bg-white">
+    <header className="w-full  ">
       {/* Top Bar */}
       <div className="bg-gray-900 text-white py-2 text-sm hidden md:block">
         <div className="container mx-auto px-4 flex justify-between items-center">
@@ -104,7 +105,7 @@ export default function Header() {
       </div>
 
       {/* Main Header */}
-      <div className={`w-full ${isScrolled ? 'shadow-md sticky top-0 z-50 bg-white' : ''} transition-all duration-300`}>
+      <div className={`w-full ${isScrolled ? 'shadow-md sticky top-0 z-50  ' : ''} transition-all duration-300`}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo and Mobile Menu Button */}
@@ -173,6 +174,8 @@ export default function Header() {
                   <span className="text-xs hidden md:block mt-1">Login</span>
                 </Link>
               )}
+
+              <ModeToggle />
             </div>
           </div>
         </div>
