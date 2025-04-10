@@ -49,16 +49,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   }
   const productImages = getValidImages()
   const isOutOfStock = !product.stock_quantity || product.stock_quantity <= 0
-
-  // const handleQuantityChange = (change: number) => {
-  //   const newQuantity = Math.max(1, quantity + change)
-  //   if (product.stock_quantity) {
-  //     setQuantity(Math.min(newQuantity, product.stock_quantity))
-  //   } else {
-  //     setQuantity(newQuantity)
-  //   }
-  // }
-
+ 
   useEffect(() => {
     const item = items.find((item) => item.id === product.id);
     setQuantity(item ? item.quantity : 1);
