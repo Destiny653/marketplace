@@ -156,7 +156,7 @@ export default function SuperDeal() {
             )}
             
             {/* Product Image */}
-            <Link href={`/products/${product.slug}`} className="block">
+            <Link href={`/products/slug/${product.slug}`} className="block">
               <div className="relative w-full aspect-[5/4] overflow-hidden group">
                 <Image
                   src={product?.image_url}

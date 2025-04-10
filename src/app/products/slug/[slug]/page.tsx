@@ -4,11 +4,7 @@ import ProductDetails from '@/components/products/ProductDetails'
 import RelatedProductsSlug from '@/components/products/RelatedProductsSlug'
 import type { Metadata } from 'next'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string }
-}): Promise<Metadata> {
+export async function generateMetadata({  params}:any ): Promise<Metadata> {
   if (!supabase) {
     return {
       title: 'Product - Loading',
@@ -37,11 +33,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function ProductSlugPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
+export default async function ProductSlugPage({ params}:any) {
   if (!supabase) {
     // Return placeholder UI for build time
     return (
