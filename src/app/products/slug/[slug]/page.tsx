@@ -2,17 +2,20 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import ProductDetails from '@/components/products/ProductDetails'
 import RelatedProductsSlug from '@/components/products/RelatedProductsSlug'
-import type { Metadata, ResolvingMetadata } from 'next'
+import type { Metadata } from 'next'
 
-type Props = {
-  params: { slug: string }
-  searchParams: Record<string, string | string[] | undefined>
+// Define your params type
+interface PageParams {
+  slug: string
 }
 
-export async function generateMetadata(
-  { params }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
+// Define the expected props type
+interface PageProps {
+  params: PageParams
+  searchParams?: { [key: string]: string | string[] | undefined }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   // Your implementation
   if (!supabase) {
     return {
@@ -42,7 +45,7 @@ export async function generateMetadata(
   }
 }
 
-export default async function ProductSlugPage({ params }: { params: Props['params'] }) {
+export default async function ProductSlugPage({ params }: { params: PageParams}) {
   if (!supabase) {
     // Return placeholder UI for build time
     return (
