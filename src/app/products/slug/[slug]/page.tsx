@@ -4,12 +4,17 @@ import ProductDetails from '@/components/products/ProductDetails'
 import RelatedProductsSlug from '@/components/products/RelatedProductsSlug'
 import type { Metadata } from 'next'
 
-// Define your params type
-type Props = {
-  params: { slug: string }
+interface Props {
+  params: {
+    slug: string;
+  };
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string }
+}): Promise<Metadata> {
   // Your implementation
   if (!supabase) {
     return {
