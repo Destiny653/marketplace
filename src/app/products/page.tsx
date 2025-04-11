@@ -1,5 +1,4 @@
-"use client";
-import { Suspense, useEffect } from 'react'
+ import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { supabase } from '@/lib/supabase/client'
 import ProductGrid from '@/components/products/ProductGrid'
@@ -8,10 +7,10 @@ import SearchBar from '@/components/common/SearchBar'
 import SortDropdown from '@/components/products/SortDropdown'
 import { Filter, ShoppingBag } from 'lucide-react'
 
-// export const metadata: Metadata = {
-//   title: 'Products | Marketplace',
-//   description: 'Browse our extensive collection of quality products at competitive prices.',
-// }
+export const metadata: Metadata = {
+  title: 'Products | Marketplace',
+  description: 'Browse our extensive collection of quality products at competitive prices.',
+}
 
 // Type declaration for search params
 type ProductQuery = {
@@ -58,19 +57,7 @@ export default async function ProductsPage({
   const page = Math.max(1, parseInt(getStringParam(searchParams.page) || '1'))
   const price = getStringParam(searchParams.price)
   const rating = getStringParam(searchParams.rating)
-
-  useEffect(() => {
-    // Scroll to top on page load
-    window.scrollTo(0, 0)
-
-  }, [
-    category,
-    search,
-    sort,
-    page,
-    price,
-    rating
-  ])
+  
 
   try {
     // Base query
