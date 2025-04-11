@@ -1,4 +1,5 @@
- import { Suspense, useEffect } from 'react'
+"use client";
+import { Suspense, useEffect } from 'react'
 import { Metadata } from 'next'
 import { supabase } from '@/lib/supabase/client'
 import ProductGrid from '@/components/products/ProductGrid'
@@ -61,7 +62,7 @@ export default async function ProductsPage({
   useEffect(() => {
     // Scroll to top on page load
     window.scrollTo(0, 0)
-    
+
   }, [
     category,
     search,
