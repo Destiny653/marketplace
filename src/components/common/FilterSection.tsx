@@ -1,4 +1,4 @@
-'use client'
+ 'use client'
 
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -47,28 +47,36 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
     }))
   }
 
-  const handleCategoryClick = (categoryId: string) => {
+  const updateFilters = (newParams: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (categoryId === currentCategory) {
-      params.delete('category')
-    } else {
-      params.set('category', categoryId)
-    }
-    params.delete('page') // Reset pagination when filter changes
-    router.push(`/products?${params.toString()}`)
+    
+    // Update params based on new values
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === null) {
+        params.delete(key)
+      } else {
+        params.set(key, value)
+      }
+    })
+    
+    // Always reset pagination when filters change
+    params.delete('page')
+    
+    // Use replace instead of push to avoid adding to history stack
+    router.replace(`/products?${params.toString()}`, { scroll: false })
+  }
+
+  const handleCategoryClick = (categoryId: string) => {
+    updateFilters({
+      category: categoryId === currentCategory ? null : categoryId
+    })
   }
 
   const handlePriceRangeClick = (range: PriceRange) => {
-    const params = new URLSearchParams(searchParams.toString())
     const priceParam = `${range.min}-${range.max}`
-    
-    if (priceParam === currentPriceRange) {
-      params.delete('price')
-    } else {
-      params.set('price', priceParam)
-    }
-    params.delete('page') // Reset pagination when filter changes
-    router.push(`/products?${params.toString()}`)
+    updateFilters({
+      price: priceParam === currentPriceRange ? null : priceParam
+    })
   }
 
   return (
@@ -100,7 +108,8 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
                 className="flex items-center space-x-3 cursor-pointer"
               >
                 <input
-                  type="checkbox"
+                  type="radio"  // Changed from checkbox to radio for single selection
+                  name="category"
                   checked={category.id === currentCategory}
                   onChange={() => handleCategoryClick(category.id)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -139,7 +148,8 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
                 className="flex items-center space-x-3 cursor-pointer"
               >
                 <input
-                  type="checkbox"
+                  type="radio"  // Changed from checkbox to radio for single selection
+                  name="price"
                   checked={`${range.min}-${range.max}` === currentPriceRange}
                   onChange={() => handlePriceRangeClick(range)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -155,7 +165,7 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
       {(currentCategory || currentPriceRange) && (
         <button
           onClick={() => {
-            router.push('/products')
+            router.replace('/products', { scroll: false })
           }}
           className="w-full py-2 px-4 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center"
         >
