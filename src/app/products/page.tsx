@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { supabase } from '@/lib/supabase/client'
-import ProductGrid from '@/components/products/ProductGrid'
+// import ProductGrid from '@/components/products/ProductGrid'
 import FilterSection from '@/components/common/FilterSection'
 import SearchBar from '@/components/common/SearchBar'
 import SortDropdown from '@/components/products/SortDropdown'
@@ -178,7 +178,7 @@ export default async function ProductsPage({ searchParams }: any) {
               ))}
             </div>
           }>
-            <ProductGrid products={products || []} />
+            {/* <ProductGrid products={products || []} /> */}
           </Suspense>
 
           {/* No results message */}
