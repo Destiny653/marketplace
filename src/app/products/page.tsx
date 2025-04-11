@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 
 // Type declaration for search params
-type SearchParams = {
+type ProductsSearchParams = {
   category?: string
   search?: string
   sort?: string
@@ -25,7 +25,7 @@ type SearchParams = {
 const ITEMS_PER_PAGE = 12
 const DEFAULT_SORT = 'newest'
 
-const createSearchParams = (params: SearchParams, newPage: number) => {
+const createSearchParams = (params: ProductsSearchParams, newPage: number) => {
   return new URLSearchParams({
     category: params.category || '',
     search: params.search || '',
@@ -36,7 +36,7 @@ const createSearchParams = (params: SearchParams, newPage: number) => {
 }
 
 export default async function ProductsPage({ searchParams }: { 
-  searchParams: SearchParams 
+  searchParams: ProductsSearchParams 
 }) {
   // Validate supabase client
   if (!supabase) {
@@ -289,7 +289,7 @@ function PaginationArrow({
   direction: 'prev' | 'next'
   currentPage: number
   totalPages: number
-  searchParams: SearchParams
+  searchParams: ProductsSearchParams
 }) {
   const isDisabled = direction === 'prev' 
     ? currentPage === 1 
