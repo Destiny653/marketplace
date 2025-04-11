@@ -28,7 +28,7 @@ const DEFAULT_SORT = 'newest'
 export default async function ProductsPage({ 
   searchParams 
 }: { 
-  searchParams: ProductQuery 
+  searchParams: any
 }) {
   // Validate supabase client
   if (!supabase) {
