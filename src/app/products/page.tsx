@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+ import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { supabase } from '@/lib/supabase/client'
 import ProductGrid from '@/components/products/ProductGrid'
@@ -12,33 +12,23 @@ export const metadata: Metadata = {
   description: 'Browse our extensive collection of quality products at competitive prices.',
 }
 
-
 // Type declaration for search params
 type ProductQuery = {
-  category?: string
-  search?: string
-  sort?: string
-  page?: string
-  price?: string
+  category?: string | string[]
+  search?: string | string[]
+  sort?: string | string[]
+  page?: string | string[]
+  price?: string | string[]
+  rating?: string | string[]
 }
-
 
 const ITEMS_PER_PAGE = 12
 const DEFAULT_SORT = 'newest'
 
-const createSearchParams = (params: ProductQuery, newPage: number) => {
-  return new URLSearchParams({
-    category: params.category || '',
-    search: params.search || '',
-    sort: params.sort || '',
-    price: params.price || '',
-    page: newPage.toString(),
-  }).toString()
-}
-
-
-export default async function ProductsPage({ searchParams }: { 
-  searchParams: any
+export default async function ProductsPage({ 
+  searchParams 
+}: { 
+  searchParams: ProductQuery 
 }) {
   // Validate supabase client
   if (!supabase) {
@@ -52,6 +42,7 @@ export default async function ProductsPage({ searchParams }: {
       </div>
     )
   }
+
   // Helper function to safely get string params
   const getStringParam = (param: string | string[] | undefined): string | undefined => {
     return Array.isArray(param) ? param[0] : param
@@ -65,35 +56,41 @@ export default async function ProductsPage({ searchParams }: {
     : DEFAULT_SORT
   const page = Math.max(1, parseInt(getStringParam(searchParams.page) || '1'))
   const price = getStringParam(searchParams.price)
-
+  const rating = getStringParam(searchParams.rating)
 
   try {
+    // Base query
+    let query = supabase
+      .from('products')
+      .select('*, categories(*)', { count: 'exact' })
+
+    // Apply filters
+    if (category) query = query.eq('category_id', category)
+    if (search) query = query.ilike('name', `%${search}%`)
+    if (price) {
+      const [minPrice, maxPrice] = price.split('-').map(Number)
+      if (!isNaN(minPrice)) query = query.gte('price', minPrice)
+      if (!isNaN(maxPrice)) query = query.lte('price', maxPrice)
+    }
+    if (rating) {
+      const minRating = parseFloat(rating)
+      if (!isNaN(minRating)) query = query.gte('avg_rating', minRating)
+    }
+
+    // Apply sorting and pagination
+    query = query
+      .order(getSortField(sort), { ascending: getSortDirection(sort) })
+      .range((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE - 1)
+
     // Fetch data in parallel
     const [productsQuery, categoriesQuery] = await Promise.all([
-      supabase
-        .from('products')
-        .select('*, categories(*)', { count: 'exact' })
-        .eq(category ? 'category_id' : '', category || '')
-        .ilike(search ? 'name' : '', search ? `%${search}%` : '')
-        .order(getSortField(sort), { ascending: getSortDirection(sort) })
-        .range((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE - 1),
+      query,
       supabase.from('categories').select('*')
     ])
 
     // Handle errors
     if (productsQuery.error) throw productsQuery.error
     if (categoriesQuery.error) throw categoriesQuery.error
-
-    // Apply price filter if needed
-    let filteredProducts = productsQuery.data || []
-    if (price) {
-      const [minPrice, maxPrice] = price.split('-').map(Number)
-      filteredProducts = filteredProducts.filter(product => {
-        const price = product.price
-        return (!isNaN(minPrice) ? price >= minPrice : true) &&
-               (!isNaN(maxPrice) ? price <= maxPrice : true)
-      })
-    }
 
     // Get current category name
     const currentCategoryName = category
@@ -104,35 +101,20 @@ export default async function ProductsPage({ searchParams }: {
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-8 mb-10 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-pattern opacity-10"></div>
           <div className="relative z-10">
             <h1 className="text-3xl md:text-5xl font-bold mb-4">
               {search ? `Search Results: ${search}` : currentCategoryName}
             </h1>
-            <p className="text-lg md:text-xl mb-6 max-w-3xl text-blue-100">
-              {search 
-                ? `Showing results for "${search}"`
-                : `Discover our curated collection of premium products at competitive prices.`
-              }
-            </p>
             <div className="max-w-xl backdrop-blur-sm bg-white/10 rounded-lg p-1">
               <SearchBar defaultValue={search} />
             </div>
           </div>
         </div>
+
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
           <div className="w-full md:w-64 flex-shrink-0">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 sticky top-24">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold flex items-center">
-                  <Filter className="h-5 w-5 mr-2 text-blue-600" />
-                  Filters
-                </h2>
-                <a href="/products" className="text-sm text-blue-600 hover:underline">
-                  Clear All
-                </a>
-              </div>
               <FilterSection categories={categoriesQuery.data || []} />
             </div>
           </div>
@@ -140,88 +122,26 @@ export default async function ProductsPage({ searchParams }: {
           {/* Main Content */}
           <div className="flex-1">
             <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center">
                   <ShoppingBag className="h-5 w-5 mr-2 text-blue-600" />
                   <span className="font-medium">
                     {productsQuery.count || 0} {productsQuery.count === 1 ? 'Product' : 'Products'}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-600 text-sm">Sort by:</span>
-                  <SortDropdown currentSort={sort ?? DEFAULT_SORT} />
-                </div>
+                <SortDropdown currentSort={sort} />
               </div>
             </div>
 
-            <Suspense fallback={
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {Array.from({ length: 8 }).map((_, index) => (
-                  <div key={index} className="bg-gray-100 rounded-lg p-4 animate-pulse h-80">
-                    <div className="bg-gray-200 h-48 rounded-md mb-4"></div>
-                    <div className="bg-gray-200 h-4 rounded w-3/4 mb-2"></div>
-                    <div className="bg-gray-200 h-4 rounded w-1/2"></div>
-                  </div>
-                ))}
-              </div>
-            }>
-              <ProductGrid products={filteredProducts} />
-            </Suspense>
-
-            {/* No results */}
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <ShoppingBag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-800 mb-2">No products found</h3>
-                <p className="text-gray-600 mb-6">
-                  {search 
-                    ? `We couldn't find any products matching "${search}"`
-                    : "No products available in this category at the moment."
-                  }
-                </p>
-                <a href="/products" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  View All Products
-                </a>
-              </div>
-            )}
+            <ProductGrid products={productsQuery.data || []} />
 
             {/* Pagination */}
             {productsQuery.count && productsQuery.count > ITEMS_PER_PAGE && (
-              <div className="mt-8 flex justify-center">
-                <nav className="inline-flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
-                  <PaginationArrow 
-                    direction="prev" 
-                    currentPage={page}
-                    totalPages={Math.ceil(productsQuery.count / ITEMS_PER_PAGE)}
-                    searchParams={searchParams}
-                  />
-                  
-                  {generatePageNumbers(page, Math.ceil(productsQuery.count / ITEMS_PER_PAGE)).map((item, index) => (
-                    item === '...' ? (
-                      <span key={`ellipsis-${index}`} className="px-2 text-gray-400">…</span>
-                    ) : (
-                      <a
-                        key={item}
-                        href={`/products?${createSearchParams(searchParams, Number(item))}`}
-                        className={`min-w-[2.5rem] h-10 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                          page === item
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {item}
-                      </a>
-                    )
-                  ))}
-
-                  <PaginationArrow 
-                    direction="next" 
-                    currentPage={page}
-                    totalPages={Math.ceil(productsQuery.count / ITEMS_PER_PAGE)}
-                    searchParams={searchParams}
-                  />
-                </nav>
-              </div>
+              <Pagination 
+                currentPage={page}
+                totalPages={Math.ceil(productsQuery.count / ITEMS_PER_PAGE)}
+                searchParams={searchParams}
+              />
             )}
           </div>
         </div>
@@ -240,20 +160,17 @@ export default async function ProductsPage({ searchParams }: {
   }
 }
 
-// Helper functions
-function getSortField(sort: string = DEFAULT_SORT) {
+// Helper functions remain the same
+function getSortField(sort: string) {
   switch (sort) {
     case 'price_asc':
-    case 'price_desc':
-      return 'price'
-    case 'popular':
-      return 'avg_rating'
-    default:
-      return 'created_at'
+    case 'price_desc': return 'price'
+    case 'popular': return 'avg_rating'
+    default: return 'created_at'
   }
 }
 
-function getSortDirection(sort: string = DEFAULT_SORT) {
+function getSortDirection(sort: string) {
   return !sort.endsWith('_asc')
 }
 
@@ -282,39 +199,90 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
   return pages
 }
 
-function PaginationArrow({
-  direction,
+function Pagination({
   currentPage,
   totalPages,
   searchParams
 }: {
-  direction: 'prev' | 'next'
   currentPage: number
   totalPages: number
   searchParams: ProductQuery
 }) {
-  const isDisabled = direction === 'prev' 
-    ? currentPage === 1 
-    : currentPage === totalPages
+  const createSearchParams = (newPage: number) => {
+    const params = new URLSearchParams()
+    if (searchParams.category) params.set('category', String(searchParams.category))
+    if (searchParams.search) params.set('search', String(searchParams.search))
+    if (searchParams.sort) params.set('sort', String(searchParams.sort))
+    if (searchParams.price) params.set('price', String(searchParams.price))
+    if (searchParams.rating) params.set('rating', String(searchParams.rating))
+    params.set('page', newPage.toString())
+    return params.toString()
+  }
 
+  return (
+    <div className="mt-8 flex justify-center">
+      <nav className="inline-flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
+        <PaginationArrow 
+          direction="prev" 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          createSearchParams={createSearchParams}
+        />
+        
+        {generatePageNumbers(currentPage, totalPages).map((item, index) => (
+          item === '...' ? (
+            <span key={`ellipsis-${index}`} className="px-2 text-gray-400">…</span>
+          ) : (
+            <a
+              key={item}
+              href={`/products?${createSearchParams(Number(item))}`}
+              className={`min-w-[2.5rem] h-10 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                currentPage === item
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {item}
+            </a>
+          )
+        ))}
+
+        <PaginationArrow 
+          direction="next" 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          createSearchParams={createSearchParams}
+        />
+      </nav>
+    </div>
+  )
+}
+
+function PaginationArrow({
+  direction,
+  currentPage,
+  totalPages,
+  createSearchParams
+}: {
+  direction: 'prev' | 'next'
+  currentPage: number
+  totalPages: number
+  createSearchParams: (page: number) => string
+}) {
+  const isDisabled = direction === 'prev' ? currentPage === 1 : currentPage === totalPages
   const newPage = direction === 'prev' ? currentPage - 1 : currentPage + 1
 
   return (
     <a
-      href={`/products?${createSearchParams(searchParams, newPage)}`}
+      href={`/products?${createSearchParams(newPage)}`}
       className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
         isDisabled ? 'text-gray-400 pointer-events-none' : 'text-gray-700'
       }`}
       aria-disabled={isDisabled}
     >
-      <svg 
-        className="w-5 h-5" 
-        fill="none" 
-        stroke="currentColor" 
-        viewBox="0 0 24 24"
-        style={{ transform: direction === 'prev' ? 'rotate(0deg)' : 'rotate(180deg)' }}
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+          d={direction === 'prev' ? "M15 19l-7-7 7-7" : "M9 5l7 7-7 7"} />
       </svg>
     </a>
   )

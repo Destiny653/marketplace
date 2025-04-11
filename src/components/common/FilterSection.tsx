@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Star } from 'lucide-react'
 
 interface Category {
   id: string
@@ -28,6 +28,13 @@ const priceRanges: PriceRange[] = [
   { min: 500, max: Infinity, label: '$500+' },
 ]
 
+const ratingOptions = [
+  { value: '4', label: '4 Stars & Up' },
+  { value: '3', label: '3 Stars & Up' },
+  { value: '2', label: '2 Stars & Up' },
+  { value: '1', label: '1 Star & Up' },
+]
+
 function FilterSectionContent({ categories }: FilterSectionProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -35,10 +42,12 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
     price: true,
+    rating: true,
   })
 
   const currentCategory = searchParams.get('category')
   const currentPriceRange = searchParams.get('price')
+  const currentRating = searchParams.get('rating')
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections((prev) => ({
@@ -50,7 +59,6 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
   const updateFilters = (newParams: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString())
     
-    // Update params based on new values
     Object.entries(newParams).forEach(([key, value]) => {
       if (value === null) {
         params.delete(key)
@@ -59,24 +67,18 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
       }
     })
     
-    // Always reset pagination when filters change
     params.delete('page')
-    
-    // Use replace instead of push to avoid adding to history stack
     router.replace(`/products?${params.toString()}`, { scroll: false })
   }
 
-  const handleCategoryClick = (categoryId: string) => {
+  const handleFilterClick = (filterType: string, value: string) => {
     updateFilters({
-      category: categoryId === currentCategory ? null : categoryId
+      [filterType]: searchParams.get(filterType) === value ? null : value
     })
   }
 
-  const handlePriceRangeClick = (range: PriceRange) => {
-    const priceParam = `${range.min}-${range.max}`
-    updateFilters({
-      price: priceParam === currentPriceRange ? null : priceParam
-    })
+  const clearAllFilters = () => {
+    router.replace('/products', { scroll: false })
   }
 
   return (
@@ -108,10 +110,10 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
                 className="flex items-center space-x-3 cursor-pointer"
               >
                 <input
-                  type="radio"  // Changed from checkbox to radio for single selection
+                  type="radio"
                   name="category"
                   checked={category.id === currentCategory}
-                  onChange={() => handleCategoryClick(category.id)}
+                  onChange={() => handleFilterClick('category', category.id)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-600">{category.name}</span>
@@ -148,10 +150,10 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
                 className="flex items-center space-x-3 cursor-pointer"
               >
                 <input
-                  type="radio"  // Changed from checkbox to radio for single selection
+                  type="radio"
                   name="price"
                   checked={`${range.min}-${range.max}` === currentPriceRange}
-                  onChange={() => handlePriceRangeClick(range)}
+                  onChange={() => handleFilterClick('price', `${range.min}-${range.max}`)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-600">{range.label}</span>
@@ -161,12 +163,56 @@ function FilterSectionContent({ categories }: FilterSectionProps) {
         )}
       </div>
 
-      {/* Clear Filters Button */}
-      {(currentCategory || currentPriceRange) && (
+      {/* Rating Section */}
+      <div className="border rounded-lg bg-white shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md">
         <button
-          onClick={() => {
-            router.replace('/products', { scroll: false })
-          }}
+          onClick={() => toggleSection('rating')}
+          className="w-full px-4 py-3 flex items-center justify-between text-left bg-gradient-to-r from-blue-50 to-white"
+        >
+          <span className="font-medium text-blue-900 flex items-center gap-2">
+            <Star className="w-5 h-5 text-blue-600 fill-current" />
+            Customer Rating
+          </span>
+          {expandedSections.rating ? (
+            <ChevronUp className="h-5 w-5 text-blue-600" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-blue-600" />
+          )}
+        </button>
+
+        {expandedSections.rating && (
+          <div className="px-4 pb-4 space-y-2">
+            {ratingOptions.map((option) => (
+              <label
+                key={option.value}
+                className="flex items-center space-x-3 cursor-pointer"
+              >
+                <input
+                  type="radio"
+                  name="rating"
+                  checked={option.value === currentRating}
+                  onChange={() => handleFilterClick('rating', option.value)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${i < parseInt(option.value) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+                    />
+                  ))}
+                  <span className="ml-1 text-sm text-gray-600">& Up</span>
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Clear Filters Button */}
+      {(currentCategory || currentPriceRange || currentRating) && (
+        <button
+          onClick={clearAllFilters}
           className="w-full py-2 px-4 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center"
         >
           Clear all filters
