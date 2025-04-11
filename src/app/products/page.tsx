@@ -8,10 +8,10 @@ import SearchBar from '@/components/common/SearchBar'
 import SortDropdown from '@/components/products/SortDropdown'
 import { Filter, ShoppingBag } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Products | Marketplace',
-  description: 'Browse our extensive collection of quality products at competitive prices.',
-}
+// export const metadata: Metadata = {
+//   title: 'Products | Marketplace',
+//   description: 'Browse our extensive collection of quality products at competitive prices.',
+// }
 
 // Type declaration for search params
 type ProductQuery = {
