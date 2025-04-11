@@ -1,4 +1,4 @@
- import { Suspense } from 'react'
+ import { Suspense, useEffect } from 'react'
 import { Metadata } from 'next'
 import { supabase } from '@/lib/supabase/client'
 import ProductGrid from '@/components/products/ProductGrid'
@@ -57,6 +57,19 @@ export default async function ProductsPage({
   const page = Math.max(1, parseInt(getStringParam(searchParams.page) || '1'))
   const price = getStringParam(searchParams.price)
   const rating = getStringParam(searchParams.rating)
+
+  useEffect(() => {
+    // Scroll to top on page load
+    window.scrollTo(0, 0)
+    
+  }, [
+    category,
+    search,
+    sort,
+    page,
+    price,
+    rating
+  ])
 
   try {
     // Base query
