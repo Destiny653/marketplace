@@ -37,9 +37,7 @@ const createSearchParams = (params: ProductQuery, newPage: number) => {
 }
 
 
-export default async function ProductsPage({ searchParams }: { 
-  searchParams: ProductQuery 
-}) {
+export default async function ProductsPage({ searchParams }:any) {
   // Validate supabase client
   if (!supabase) {
     console.error('Supabase client not initialized')
