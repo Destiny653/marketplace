@@ -35,12 +35,9 @@ const createSearchParams = (params: SearchParams, newPage: number) => {
   }).toString()
 }
 
-// Fix: Use the correct type for page props
-interface PageProps {
-  searchParams: SearchParams
-}
-
-export default async function ProductsPage({ searchParams }: PageProps) {
+export default async function ProductsPage({ searchParams }: { 
+  searchParams: SearchParams 
+}) {
   // Validate supabase client
   if (!supabase) {
     console.error('Supabase client not initialized')
@@ -53,15 +50,20 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       </div>
     )
   }
+  // Helper function to safely get string params
+  const getStringParam = (param: string | string[] | undefined): string | undefined => {
+    return Array.isArray(param) ? param[0] : param
+  }
 
-  // Parse and validate parameters
-  const category = searchParams.category
-  const search = searchParams.search?.trim()
-  const sort = ['price_asc', 'price_desc', 'newest', 'popular'].includes(searchParams.sort || '')
-    ? searchParams.sort || DEFAULT_SORT
+  // Extract and validate parameters
+  const category = getStringParam(searchParams.category)
+  const search = getStringParam(searchParams.search)?.trim()
+  const sort = ['price_asc', 'price_desc', 'newest', 'popular'].includes(getStringParam(searchParams.sort) || '')
+    ? getStringParam(searchParams.sort) || DEFAULT_SORT
     : DEFAULT_SORT
-  const page = Math.max(1, parseInt(searchParams.page || '1'))
-  const price = searchParams.price
+  const page = Math.max(1, parseInt(getStringParam(searchParams.page) || '1'))
+  const price = getStringParam(searchParams.price)
+
 
   try {
     // Fetch data in parallel
@@ -116,7 +118,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             </div>
           </div>
         </div>
-
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
           <div className="w-full md:w-64 flex-shrink-0">
