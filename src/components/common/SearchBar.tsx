@@ -1,14 +1,18 @@
-'use client'
+ 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, X } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 
-function SearchBarContent() {
+interface SearchBarProps {
+  defaultValue?: string
+}
+
+function SearchBarContent({ defaultValue = '' }: SearchBarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const initialQuery = searchParams.get('search') || ''
+  const initialQuery = searchParams.get('search') || defaultValue
   
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const debouncedSearch = useDebounce(searchQuery, 500)
@@ -45,6 +49,7 @@ function SearchBarContent() {
           <button 
             onClick={clearSearch}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            aria-label="Clear search"
           >
             <X className="h-5 w-5" />
           </button>
@@ -54,7 +59,7 @@ function SearchBarContent() {
   )
 }
 
-export default function SearchBar() {
+export default function SearchBar({ defaultValue }: SearchBarProps) {
   return (
     <Suspense fallback={
       <div className="relative w-full max-w-md">
@@ -63,7 +68,7 @@ export default function SearchBar() {
         </div>
       </div>
     }>
-      <SearchBarContent />
+      <SearchBarContent defaultValue={defaultValue} />
     </Suspense>
   )
 }

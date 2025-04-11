@@ -12,22 +12,14 @@ export const metadata: Metadata = {
   description: 'Browse our extensive collection of quality products at competitive prices.',
 }
 
-interface SearchBarProps {
-  defaultValue?: string
-}
 
-// Ensure SearchBar component accepts these props
-declare module '@/components/common/SearchBar' {
-  export default function SearchBar(props: SearchBarProps): React.ReactElement
-}
-
-interface SearchParams {
+// Type declaration for search params
+type SearchParams = {
   category?: string
   search?: string
   sort?: string
   page?: string
   price?: string
-  [key: string]: string | undefined
 }
 
 const ITEMS_PER_PAGE = 12
@@ -43,7 +35,12 @@ const createSearchParams = (params: SearchParams, newPage: number) => {
   }).toString()
 }
 
-export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
+// Fix: Use the correct type for page props
+interface PageProps {
+  searchParams: SearchParams
+}
+
+export default async function ProductsPage({ searchParams }: PageProps) {
   // Validate supabase client
   if (!supabase) {
     console.error('Supabase client not initialized')
@@ -61,7 +58,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const category = searchParams.category
   const search = searchParams.search?.trim()
   const sort = ['price_asc', 'price_desc', 'newest', 'popular'].includes(searchParams.sort || '')
-    ? searchParams.sort
+    ? searchParams.sort || DEFAULT_SORT
     : DEFAULT_SORT
   const page = Math.max(1, parseInt(searchParams.page || '1'))
   const price = searchParams.price
