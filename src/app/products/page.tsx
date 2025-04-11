@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { supabase } from '@/lib/supabase/client'
-// import ProductGrid from '@/components/products/ProductGrid'
+import ProductGrid from '@/components/products/ProductGrid'
 import FilterSection from '@/components/common/FilterSection'
 import SearchBar from '@/components/common/SearchBar'
 import SortDropdown from '@/components/products/SortDropdown'
@@ -39,7 +39,7 @@ export default async function ProductsPage({ searchParams }: any) {
     // This will be replaced with actual data during runtime
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Products</h1>
+        <h1 className="text-3xl font-bold mb-8">Products des2</h1>
         <div className="text-center py-12">
           <p className="text-gray-500">Loading products...</p>
         </div>
@@ -178,7 +178,7 @@ export default async function ProductsPage({ searchParams }: any) {
               ))}
             </div>
           }>
-            {/* <ProductGrid products={products || []} /> */}
+            <ProductGrid products={products || []} />
           </Suspense>
 
           {/* No results message */}
@@ -274,7 +274,7 @@ export default async function ProductsPage({ searchParams }: any) {
       </div>
       
       {/* Featured Categories Section */}
-      <div className="mt-16">
+      {/* <div className="mt-16">
         <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {categories?.slice(0, 4).map((category) => (
@@ -298,7 +298,7 @@ export default async function ProductsPage({ searchParams }: any) {
             </a>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }
