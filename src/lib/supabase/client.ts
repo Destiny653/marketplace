@@ -1,26 +1,43 @@
 import { createClient } from '@supabase/supabase-js'
 import { Database } from './types'
 
-// This function creates a Supabase client only when it's actually needed
-// This prevents errors during build time when environment variables might not be available
-const createSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // During build time, return a mock client that won't be used
-    if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
-      console.warn('Supabase environment variables not available during build');
-      return null;
-    }
-    throw new Error('Supabase environment variables are missing');
-  }
-  
-  return createClient<Database>(supabaseUrl, supabaseAnonKey);
-};
+// Runtime validation of environment variables
+const getSupabaseConfig = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Export a lazy-loaded client that's only created when actually used
-// This prevents errors during static site generation
-export const supabase = typeof window === 'undefined' 
-  ? (process.env.NODE_ENV === 'production' ? null : createSupabaseClient())
-  : createSupabaseClient();
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (process.env.NODE_ENV === 'development') {
+      throw new Error(
+        `Supabase environment variables not configured!\n
+        NEXT_PUBLIC_SUPABASE_URL: ${supabaseUrl}\n
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${supabaseAnonKey?.slice(0, 5)}...`
+      )
+    }
+    console.error('Supabase client initialization failed - missing env vars')
+    return null
+  }
+
+  return { supabaseUrl, supabaseAnonKey }
+}
+
+// Singleton client instance
+let client: ReturnType<typeof createClient<Database>> | null = null
+
+export const getSupabaseClient = () => {
+  if (client) return client
+
+  const config = getSupabaseConfig()
+  if (!config) return null
+
+  client = createClient<Database>(config.supabaseUrl, config.supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true
+    }
+  })
+
+  return client
+}
+
+export const supabase = getSupabaseClient()
