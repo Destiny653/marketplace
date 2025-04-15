@@ -4,68 +4,60 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
+// In your type definitions file (e.g., types.ts)
+export interface OrderResponse {
+  data?: OrderDetails;
+  error?: string;
+  status?: number;
+}
+
+export interface OrderDetails {
+  id: string;
+  total_amount: number;
+  // Add other order properties as needed
+}
+
+export interface GetOrderByIdOptions {
+  signal?: AbortSignal;
+}
+
 /**
  * Get order details by ID
  */
-export async function getOrderById(orderId: string) {
-  const supabase = createServerComponentClient({ cookies })
-  
+// Update the function signature to accept options
+export async function getOrderById(
+  orderId: string,
+  options?: { signal?: AbortSignal }
+): Promise<OrderResponse> {
   try {
-    // Get the current user
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session) {
-      return {
-        error: 'Unauthorized',
-        status: 401
-      }
+    const response = await fetch(`/api/orders/${orderId}`, {
+      method: 'GET',
+      signal: options?.signal,  // Pass the AbortSignal if provided
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      return { 
+        error: error.message || 'Failed to fetch order',
+        status: response.status 
+      };
     }
-    
-    // Get the order with items
-    const { data: order, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items (
-          *,
-          product:products (
-            name,
-            image_url
-          )
-        )
-      `)
-      .eq('id', orderId)
-      .single()
-    
-    if (error) {
-      return {
-        error: 'Failed to fetch order',
-        status: 500
-      }
-    }
-    
-    if (!order) {
-      return {
-        error: 'Order not found',
-        status: 404
-      }
-    }
-    
-    // Check if the user is authorized to view this order
-    if (order.user_id !== session.user.id) {
-      return {
-        error: 'Unauthorized',
-        status: 403
-      }
-    }
-    
-    return { data: order }
+
+    const data = await response.json();
+    return { data };
   } catch (error) {
-    console.error('Error fetching order:', error)
-    return {
-      error: 'Internal server error',
-      status: 500
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.log('Request was aborted');
+      return { error: 'Request cancelled', status: 499 };
     }
+    console.error('getOrderById error:', error);
+    return { 
+      error: error instanceof Error ? error.message : 'Failed to fetch order',
+      status: 500 
+    };
   }
 }
 

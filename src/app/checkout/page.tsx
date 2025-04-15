@@ -52,9 +52,18 @@ export default function CheckoutPage() {
   const totalPrice = subtotal + shippingCost + tax
 
   // Redirect to cart if no items
-  if (typeof window !== 'undefined' && items.length === 0) {
-    router.push('/cart')
-    return null
+  useEffect(() => {
+    if (items.length === 0) {
+      router.push('/cart')
+    }
+  }, [items, router])
+  
+  if (items.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-6xl text-center">
+        <p>Your cart is empty. Redirecting to cart...</p>
+      </div>
+    )
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,7 +114,7 @@ export default function CheckoutPage() {
         shippingAddress,
         shippingMethod: formData.shippingMethod,
       })
-      
+      console.log('Checkout result:', result)
       if (!result.success) {
         throw new Error(result.error || 'Failed to process order')
       }
@@ -114,7 +123,7 @@ export default function CheckoutPage() {
       clearCart()
       
       // Redirect to payment page with order ID
-      router.push(`/checkout/payment?orderId=${result.orderId}`)
+      router.push(`/checkout/payment/${result.orderId}`)
     } catch (error: any) {
       console.error('Checkout error:', error)
       setError(error.message || 'An error occurred during checkout')
