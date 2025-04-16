@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, ArrowRight, Package, CreditCard, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
-import { getOrderById, getOrderPaymentStatus, getOrderStatus } from '@/actions/order-actions'
+import { getOrderById, getOrderPaymentStatus, getOrderStatus } from '@/lib/actions/order-actions'
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()

@@ -8,7 +8,8 @@ import { CheckCircle, ChevronRight, CreditCard, MapPin, Truck, User, AlertCircle
 import Image from 'next/image'
 import { useAuth } from '@/hooks/useAuth'
 import { processCheckout, ShippingAddress } from '@/lib/services/checkout'
-import { paymentMethods } from '@/lib/constants/payment-methods'
+// import { paymentMethods } from '@/lib/constants/payment-methods' 
+import { PaymentMethods } from '@/components/checkout/payment-methods'
 
 // Define checkout steps
 const CHECKOUT_STEPS = {
@@ -36,7 +37,7 @@ export default function CheckoutPage() {
     state: '',
     phoneNumber: '',
     shippingMethod: 'standard',
-    paymentMethod: paymentMethods[0].id,
+    paymentMethod: '',
     cardNumber: '',
     cardExpiry: '',
     cardCvc: ''
@@ -120,7 +121,7 @@ export default function CheckoutPage() {
       }
       
       // Clear the cart after successful checkout
-      clearCart()
+      // clearCart()
       
       // Redirect to payment page with order ID
       router.push(`/checkout/payment/${result.orderId}`)
@@ -148,6 +149,10 @@ export default function CheckoutPage() {
       case CHECKOUT_STEPS.REVIEW: return 'Place Order'
       default: return 'Continue'
     }
+  }
+
+  const handlePaymentMethodSelect = (methodId: string) => {
+    setFormData({ ...formData, paymentMethod: methodId })
   }
 
   return (
@@ -438,28 +443,10 @@ export default function CheckoutPage() {
               {/* Payment Step */}
               {currentStep === CHECKOUT_STEPS.PAYMENT && (
                 <div className="space-y-6">
-                  <div className="space-y-4">
-                    {paymentMethods.map((method) => (
-                      <div key={method.id} className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                        <input
-                          type="radio"
-                          name="payment"
-                          id={method.id}
-                          value={method.id}
-                          checked={formData.paymentMethod === method.id}
-                          onChange={() => setFormData({ ...formData, paymentMethod: method.id })}
-                          className="h-4 w-4 text-blue-600"
-                        />
-                        <label htmlFor={method.id} className="ml-3 flex flex-1 cursor-pointer">
-                          <div>
-                            <p className="font-medium">{method.name}</p>
-                            <p className="text-sm text-gray-500">{method.description}</p>
-                          </div>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-
+                  <PaymentMethods 
+                    onSelect={handlePaymentMethodSelect} 
+                  />
+                  
                   {formData.paymentMethod === 'credit-card' && (
                     <div className="space-y-4 mt-6 p-4 border rounded-lg bg-gray-50">
                       <div>

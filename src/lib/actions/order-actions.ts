@@ -9,9 +9,15 @@ export interface OrderResponse {
   data?: OrderDetails;
   error?: string;
   status?: number;
+  user_id?: string;
 }
 
+
+
 export interface OrderDetails {
+  payment_status: string;
+  status: string;
+  user_id: string;
   id: string;
   total_amount: number;
   // Add other order properties as needed
@@ -25,42 +31,37 @@ export interface GetOrderByIdOptions {
  * Get order details by ID
  */
 // Update the function signature to accept options
-export async function getOrderById(
-  orderId: string,
-  options?: { signal?: AbortSignal }
-): Promise<OrderResponse> {
+export async function getOrderById(orderId: string) {
+  // Create Supabase client with proper cookie handling
+  const supabase = createServerComponentClient({
+    cookies
+  })
   try {
-    const response = await fetch(`/api/orders/${orderId}`, {
-      method: 'GET',
-      signal: options?.signal,  // Pass the AbortSignal if provided
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const { data, error, status } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .single()
 
-    if (!response.ok) {
-      const error = await response.json();
-      return { 
-        error: error.message || 'Failed to fetch order',
-        status: response.status 
-      };
+    if (error) throw error
+    
+    return { 
+      data: {
+        id: data.id,
+        total_amount: data.total_amount,
+        payment_status: data.payment_status || 'unpaid',
+        status: data.status || 'pending',
+        user_id: data.user_id
+      }
     }
-
-    const data = await response.json();
-    return { data };
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.log('Request was aborted');
-      return { error: 'Request cancelled', status: 499 };
-    }
-    console.error('getOrderById error:', error);
+    console.error('Error fetching order:', error)
     return { 
       error: error instanceof Error ? error.message : 'Failed to fetch order',
       status: 500 
-    };
+    }
   }
 }
-
 /**
  * Get order payment status
  */

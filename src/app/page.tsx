@@ -3,9 +3,10 @@ import FeaturedCategories from '@/components/home/FeaturedCategories'
 import FeaturedProducts from '@/components/home/FeaturedProducts'
 import SuperDeal from '@/components/home/SuperDeal'
 import PromoBanners from '@/components/home/PromoBanners'
-import CategoryBlocks from '@/components/home/CategoryBlocks'
+import CategoryBlocks from '@/components/home/CategoryBlocks' 
 
 export default function Home() {
+ 
   return (
     <main className="overflow-hidden">
       {/* Hero Section with Full-width Slider */}
