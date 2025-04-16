@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 import { StripePaymentForm } from '@/components/ui/stripe-payment-form'
 import { useRouter } from 'next/navigation'
