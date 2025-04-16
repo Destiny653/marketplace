@@ -105,7 +105,7 @@ export const paymentMethods = [
     type: PAYMENT_METHODS.PAYPAL
   },
   {
-    id: 'bank_transfer',
+    id: 'us_bank_account',
     name: PAYMENT_METHOD_LABELS.bank_transfer,
     description: 'Direct bank transfer',
     type: PAYMENT_METHODS.BANK_TRANSFER

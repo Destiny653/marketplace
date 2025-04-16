@@ -21,3 +21,11 @@ export const formatPrice = (price: number): string => {
       .replace(/(^-|-$)+/g, '')
   }
   
+
+  export function getCurrencyForCountry(countryCode: string): string {
+    const countryToCurrency: Record<string, string> = {
+      US: 'usd', GB: 'gbp', DE: 'eur', FR: 'eur',
+      CA: 'cad', AU: 'aud', JP: 'jpy', // Add more as needed
+    }
+    return countryToCurrency[countryCode] || 'usd'
+  }

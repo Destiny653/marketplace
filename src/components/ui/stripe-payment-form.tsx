@@ -1,12 +1,12 @@
 'use client'
 
-import { 
-  CardElement, 
-  useStripe, 
+import {
+  CardElement,
+  useStripe,
   useElements,
   PaymentElement,
   IbanElement,
-  IdealBankElement, 
+  IdealBankElement,
 } from '@stripe/react-stripe-js'
 import { StripeError } from '@stripe/stripe-js'
 import { FormEvent, useEffect, useState } from 'react'
@@ -90,7 +90,7 @@ export function StripePaymentForm({
 
         if (orderError) throw orderError
         if (!orderData) throw new Error('Order not found')
-        
+
         setOrder(orderData)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load data')
@@ -103,7 +103,7 @@ export function StripePaymentForm({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    
+
     if (!stripe || !elements) {
       setError('Payment system not ready')
       return
@@ -150,9 +150,9 @@ export function StripePaymentForm({
       }
 
       let result
-      
+
       // Handle different payment methods
-      switch(paymentMethodType) {
+      switch (paymentMethodType) {
         case 'card':
           result = await stripe.confirmCardPayment(clientSecret, {
             payment_method: {
@@ -187,14 +187,13 @@ export function StripePaymentForm({
               },
               billing_details: baseBillingDetails
             },
-            return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
           })
           break
 
         case 'sepa_debit':
           const ibanElement = elements.getElement(IbanElement)
           if (!ibanElement) throw new Error('IBAN element not found')
-          
+
           result = await stripe.confirmSepaDebitPayment(clientSecret, {
             payment_method: {
               sepa_debit: ibanElement,
@@ -207,7 +206,7 @@ export function StripePaymentForm({
         case 'ideal':
           const idealElement = elements.getElement(IdealBankElement)
           if (!idealElement) throw new Error('iDEAL element not found')
-          
+
           result = await stripe.confirmIdealPayment(clientSecret, {
             payment_method: {
               ideal: idealElement,
@@ -285,9 +284,8 @@ export function StripePaymentForm({
           .eq('id', orderId)
 
         if (updateError) throw updateError
-        
+
         onSuccess()
-        
       }
     } catch (err) {
       const error = err as StripeError | Error
@@ -303,7 +301,7 @@ export function StripePaymentForm({
       return <div className="text-center py-8">Loading payment form...</div>
     }
 
-    switch(paymentMethodType) {
+    switch (paymentMethodType) {
       case 'card':
         return (
           <CardElement
@@ -328,9 +326,9 @@ export function StripePaymentForm({
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Routing Number</label>
-              <input 
-                type="text" 
-                className="w-full p-2 border rounded" 
+              <input
+                type="text"
+                className="w-full p-2 border rounded"
                 placeholder="110000000 (test value)"
                 defaultValue="110000000"
                 required
@@ -338,9 +336,9 @@ export function StripePaymentForm({
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Account Number</label>
-              <input 
-                type="text" 
-                className="w-full p-2 border rounded" 
+              <input
+                type="text"
+                className="w-full p-2 border rounded"
                 placeholder="000123456789 (test value)"
                 defaultValue="000123456789"
                 required
@@ -352,11 +350,11 @@ export function StripePaymentForm({
       case 'google_pay':
       case 'link':
         return (
-          <PaymentElement 
+          <PaymentElement
             options={{
               fields: {
                 billingDetails: {
-                  name: 'never',
+                  name: 'auto',
                   email: 'never',
                   phone: 'never'
                 }
@@ -364,6 +362,22 @@ export function StripePaymentForm({
             }}
             onReady={() => setPaymentElementLoaded(true)}
           />
+        )
+      case 'paypal':
+        return (
+          <div className="space-y-4">
+            <PaymentElement
+              options={{
+                paymentMethodOrder: ['paypal'],
+                fields: {
+                  billingDetails: 'never'
+                }
+              }}
+            />
+            <p className="text-sm text-gray-500">
+              You'll be redirected to PayPal to complete your payment
+            </p>
+          </div>
         )
       default:
         return <div>Selected payment method: {paymentMethodType}</div>
@@ -403,7 +417,7 @@ export function StripePaymentForm({
         <h3 className="font-medium text-lg mb-2">Order Summary</h3>
         <p className="text-gray-700">Order ID: {order.id}</p>
         <p className="text-gray-700">Total: ${(order.total_amount / 100).toFixed(2)}</p>
-        
+
         <div className="mt-4">
           <h4 className="font-medium">Shipping Address:</h4>
           <p className="text-gray-600">
@@ -429,7 +443,7 @@ export function StripePaymentForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {renderPaymentElement()}
-        
+
         <button
           type="submit"
           disabled={!stripe || processing || isPaymentElementLoading}
