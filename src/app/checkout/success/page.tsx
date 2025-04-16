@@ -9,14 +9,14 @@ import { getOrderById, getOrderPaymentStatus, getOrderStatus } from '@/lib/actio
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const orderId = searchParams.get('orderId')
+  const order_id = searchParams.get('order_id')
   const [paymentStatus, setPaymentStatus] = useState(null)
   const [orderStatus, setOrderStatus] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!orderId) {
+    if (!order_id) {
       router.push('/')
       return
     }
@@ -26,8 +26,8 @@ function CheckoutSuccessContent() {
       setError(null)
       try {
         const [paymentResult, statusResult] = await Promise.all([
-          getOrderPaymentStatus(orderId),
-          getOrderStatus(orderId)
+          getOrderPaymentStatus(order_id),
+          getOrderStatus(order_id)
         ])
 
         if (paymentResult.error || statusResult.error) {
@@ -45,7 +45,7 @@ function CheckoutSuccessContent() {
     }
 
     fetchData()
-  }, [orderId, router])
+  }, [order_id, router])
 
   if (isLoading) {
     return (
@@ -100,7 +100,7 @@ function CheckoutSuccessContent() {
         <div className="bg-gray-50 p-6 rounded-lg mb-8">
           <div className="flex justify-between items-center mb-4 pb-4 border-b">
             <span className="text-gray-600">Order ID:</span>
-            <span className="font-medium">{orderId}</span>
+            <span className="font-medium">{order_id}</span>
           </div>
 
           <div className="flex justify-between items-center">

@@ -1,4 +1,4 @@
- 'use client'
+'use client'
 
 import { 
   CardElement, 
@@ -6,17 +6,45 @@ import {
   useElements,
   PaymentElement,
   IbanElement,
-  IdealBankElement,
-  AuBankAccountElement
+  IdealBankElement, 
 } from '@stripe/react-stripe-js'
+import { StripeError } from '@stripe/stripe-js'
 import { FormEvent, useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { User } from '@supabase/supabase-js'
+
+interface Address {
+  fullName?: string
+  addressLine1?: string
+  city?: string
+  state?: string
+  postalCode?: string
+  country?: string
+  phoneNumber?: string
+}
+
+interface Order {
+  id: string
+  total_amount: number
+  status: string
+  payment_status: string
+  user_id: string
+  billing_address?: Address
+  shipping_address?: Address
+}
 
 interface StripePaymentFormProps {
   clientSecret: string
   onSuccess: () => void
   paymentMethodType: string
   orderId: string
+}
+
+// Define a custom error type that extends StripeError to include the element property
+interface ElementsSubmitError extends StripeError {
+  element?: {
+    focus: () => void;
+  };
 }
 
 export function StripePaymentForm({
@@ -29,8 +57,9 @@ export function StripePaymentForm({
   const elements = useElements()
   const [error, setError] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [order, setOrder] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [order, setOrder] = useState<Order | null>(null)
+  const [paymentElementLoaded, setPaymentElementLoaded] = useState(false)
   const supabase = createClientComponentClient()
 
   // Validate orderId format
@@ -94,14 +123,22 @@ export function StripePaymentForm({
     setError(null)
 
     try {
-      let result
-      
-      // Use billing address if available, otherwise fallback to shipping address
+      // First submit the elements to validate them
+      const { error: submitError } = await elements.submit()
+      if (submitError) {
+        // Cast to our custom error type that includes the element property
+        const elementError = submitError as ElementsSubmitError
+        if (elementError.element) {
+          elementError.element.focus()
+        }
+        throw submitError
+      }
+
+      // Prepare billing details
       const address = order.billing_address || order.shipping_address
-      
       const baseBillingDetails = {
         name: address?.fullName || user.user_metadata?.full_name || user.user_metadata?.name || 'Customer',
-        email: user.email,
+        email: user.email || '',
         phone: address?.phoneNumber || '',
         address: {
           line1: address?.addressLine1 || 'Unknown',
@@ -112,6 +149,9 @@ export function StripePaymentForm({
         }
       }
 
+      let result
+      
+      // Handle different payment methods
       switch(paymentMethodType) {
         case 'card':
           result = await stripe.confirmCardPayment(clientSecret, {
@@ -146,7 +186,8 @@ export function StripePaymentForm({
                 account_holder_type: 'individual'
               },
               billing_details: baseBillingDetails
-            }
+            },
+            return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
           })
           break
 
@@ -158,7 +199,8 @@ export function StripePaymentForm({
             payment_method: {
               sepa_debit: ibanElement,
               billing_details: baseBillingDetails
-            }
+            },
+            return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
           })
           break
 
@@ -227,7 +269,7 @@ export function StripePaymentForm({
       }
 
       if (result?.error) {
-        throw new Error(result.error.message || 'Payment failed')
+        throw result.error
       }
 
       if (result?.paymentIntent?.status === 'succeeded') {
@@ -245,10 +287,12 @@ export function StripePaymentForm({
         if (updateError) throw updateError
         
         onSuccess()
+        
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Payment processing failed')
-      console.error('Payment error:', err)
+      const error = err as StripeError | Error
+      setError(error.message || 'Payment processing failed')
+      console.error('Payment error:', error)
     } finally {
       setProcessing(false)
     }
@@ -289,6 +333,7 @@ export function StripePaymentForm({
                 className="w-full p-2 border rounded" 
                 placeholder="110000000 (test value)"
                 defaultValue="110000000"
+                required
               />
             </div>
             <div>
@@ -298,6 +343,7 @@ export function StripePaymentForm({
                 className="w-full p-2 border rounded" 
                 placeholder="000123456789 (test value)"
                 defaultValue="000123456789"
+                required
               />
             </div>
           </div>
@@ -305,17 +351,20 @@ export function StripePaymentForm({
       case 'apple_pay':
       case 'google_pay':
       case 'link':
-        return <PaymentElement 
-          options={{
-            fields: {
-              billingDetails: {
-                name: 'never',
-                email: 'never',
-                phone: 'never'
+        return (
+          <PaymentElement 
+            options={{
+              fields: {
+                billingDetails: {
+                  name: 'never',
+                  email: 'never',
+                  phone: 'never'
+                }
               }
-            }
-          }} 
-        />
+            }}
+            onReady={() => setPaymentElementLoaded(true)}
+          />
+        )
       default:
         return <div>Selected payment method: {paymentMethodType}</div>
     }
@@ -327,16 +376,29 @@ export function StripePaymentForm({
         <h3 className="font-medium text-lg mb-2">Error</h3>
         <p>{error}</p>
         {orderId && <p className="mt-2 text-sm">Order ID: {orderId}</p>}
+        <button
+          onClick={() => setError(null)}
+          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Try Again
+        </button>
       </div>
     )
   }
 
   if (!user || !order) {
-    return <div className="text-center py-8">Loading payment details...</div>
+    return (
+      <div className="text-center py-8">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="mt-2">Loading payment details...</p>
+      </div>
+    )
   }
 
+  const isPaymentElementLoading = ['apple_pay', 'google_pay', 'link'].includes(paymentMethodType) && !paymentElementLoaded
+
   return (
-    <div className="max-w-md mx-auto">
+    <div className="w-full mx-auto">
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h3 className="font-medium text-lg mb-2">Order Summary</h3>
         <p className="text-gray-700">Order ID: {order.id}</p>
@@ -370,10 +432,21 @@ export function StripePaymentForm({
         
         <button
           type="submit"
-          disabled={!stripe || processing}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          disabled={!stripe || processing || isPaymentElementLoading}
+          className={`w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors
+            ${!stripe || processing || isPaymentElementLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {processing ? 'Processing Payment...' : `Pay $${(order.total_amount / 100).toFixed(2)}`}
+          {processing ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Processing Payment...
+            </span>
+          ) : (
+            `Pay $${(order.total_amount / 100).toFixed(2)}`
+          )}
         </button>
       </form>
     </div>

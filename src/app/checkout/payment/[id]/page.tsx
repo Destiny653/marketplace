@@ -129,10 +129,9 @@ export default function PaymentConfirmationPage() {
         </h1>
 
         <StripeProvider>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h1 className="text-2xl font-bold mb-4">Complete Your Payment</h1>
-            <p className="text-gray-600 mb-6">
-              Order Total: ${orderDetails.total_amount.toFixed(2)}
+          <div className="w-full p-6"> 
+            <p className="text-gray-600 mb-6 ">
+              Order Total: <span className='text-green-600'>${orderDetails.total_amount.toFixed(2)}</span>
             </p>
             <PaymentForm 
               orderId={id}

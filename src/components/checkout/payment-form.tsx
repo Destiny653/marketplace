@@ -79,8 +79,8 @@ export function PaymentForm({
   console.log(`Stripe keys, stripe:${stripePromise}, options:${clientSecret}`)
 
   return (
-    <div className="max-w-md mx-auto">
-      <h2 className="text-xl font-semibold mb-4">Payment Details</h2>
+    <div className=" w-full max- mx-auto">
+      <h2 className="text-xl font-semibold mb-4 text-blue-600">Payment Details</h2>
       <Elements stripe={stripePromise} options={{clientSecret}}>
         <StripePaymentForm
           clientSecret={clientSecret}
