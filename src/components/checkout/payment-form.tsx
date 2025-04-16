@@ -78,6 +78,7 @@ export function PaymentForm({
         clientSecret={clientSecret} 
         onSuccess={handleSuccess}
         paymentMethodType={paymentMethodId}
+        orderId={orderId}
       />
     </div>
   )

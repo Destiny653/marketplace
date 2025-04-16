@@ -20,3 +20,52 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ clientSecret: paymentIntent.client_secret });
 }
+
+
+// import { NextResponse } from 'next/server'
+// import Stripe from 'stripe'
+
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+//   apiVersion: '2023-10-16'
+// })
+
+// export async function POST(request: Request) {
+//   try {
+//     const { orderId, amount } = await request.json()
+
+//     // Validate input
+//     if (!orderId || typeof orderId !== 'string') {
+//       return NextResponse.json(
+//         { error: 'Invalid order ID' },
+//         { status: 400 }
+//       )
+//     }
+
+//     if (isNaN(amount) || amount <= 0) {
+//       return NextResponse.json(
+//         { error: 'Invalid payment amount' },
+//         { status: 400 }
+//       )
+//     }
+
+//     // Create payment intent
+//     const paymentIntent = await stripe.paymentIntents.create({
+//       amount: Math.round(amount), // Amount in cents
+//       currency: 'usd',
+//       metadata: {
+//         orderId
+//       }
+//     })
+
+//     return NextResponse.json({
+//       clientSecret: paymentIntent.client_secret
+//     })
+
+//   } catch (err) {
+//     console.error('Stripe error:', err)
+//     return NextResponse.json(
+//       { error: 'Failed to create payment intent' },
+//       { status: 500 }
+//     )
+//   }
+// }
