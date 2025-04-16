@@ -4,13 +4,17 @@ import { StripePaymentForm } from '@/components/ui/stripe-payment-form'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { getPaymentMethodById } from '@/lib/constants/payment-methods'
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 
-export function PaymentForm({ 
-  orderId, 
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+export function PaymentForm({
+  orderId,
   amount,
-  paymentMethodId 
-}: { 
-  orderId: string; 
+  paymentMethodId
+}: {
+  orderId: string;
   amount: number;
   paymentMethodId: any;
 }) {
@@ -29,7 +33,7 @@ export function PaymentForm({
         const response = await fetch('/api/stripe/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             orderId,
             amount: Math.round(amount),
             payment_method_type: paymentMethod?.type
@@ -72,15 +76,19 @@ export function PaymentForm({
     )
   }
 
+  console.log(`Stripe keys, stripe:${stripePromise}, options:${clientSecret}`)
+
   return (
     <div className="max-w-md mx-auto">
       <h2 className="text-xl font-semibold mb-4">Payment Details</h2>
-      <StripePaymentForm 
-        clientSecret={clientSecret} 
-        onSuccess={handleSuccess}
-        paymentMethodType={paymentMethodId}
-        orderId={orderId}
-      />
+      <Elements stripe={stripePromise} options={{clientSecret}}>
+        <StripePaymentForm
+          clientSecret={clientSecret}
+          onSuccess={handleSuccess}
+          paymentMethodType={paymentMethodId}
+          orderId={orderId}
+        />
+      </Elements>
     </div>
   )
 }

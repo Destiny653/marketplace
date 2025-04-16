@@ -18,6 +18,8 @@ export async function POST(req: Request) {
     metadata: { userId: user.id },
   });
 
+  console.log("CLIENT_SECRET api route: ",paymentIntent.client_secret)
+
   return NextResponse.json({ clientSecret: paymentIntent.client_secret });
 }
 

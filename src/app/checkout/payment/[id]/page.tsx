@@ -18,39 +18,35 @@ interface OrderDetails {
 }
 
 export default function PaymentConfirmationPage() {
-  const router = useRouter() 
+  const router = useRouter()
   const params = useParams()
-  const { user, loading: authLoading } = useAuth() // Add authLoading state
+  const { id } = params as { id: string } // Type assertion for dynamic route param
+  const { user, loading: authLoading } = useAuth()
   const { paymentMethod } = usePayment()
-
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null)
   const [retryCount, setRetryCount] = useState(0)
 
-  const orderId = Array.isArray(params.id) ? params.id[0] : params.id as string
-
   useEffect(() => {
-    if (!orderId || authLoading) return // Wait for auth to load
+    if (!id || authLoading) return
 
     const fetchOrderDetails = async () => {
       setIsLoading(true)
       setError(null)
 
       try {
-        const { data: order, error } = await getOrderById(orderId)
+        const { data: order, error } = await getOrderById(id)
 
         if (error || !order) {
           throw new Error(error || 'Order not found')
         }
 
-        // Verify order ownership if user is logged in
         if (user && order.user_id !== user.id) {
           throw new Error('Unauthorized access to order')
         }
 
-        // Ensure total_amount is a valid number
         const totalAmount = Number(order.total_amount)
         if (isNaN(totalAmount)) {
           throw new Error('Invalid order total amount')
@@ -65,8 +61,7 @@ export default function PaymentConfirmationPage() {
         })
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load order')
-
-        // Auto-retry up to 3 times
+        
         if (retryCount < 3) {
           setTimeout(() => {
             setRetryCount(prev => prev + 1)
@@ -78,8 +73,7 @@ export default function PaymentConfirmationPage() {
     }
 
     fetchOrderDetails()
-  }, [orderId, router, user, retryCount, authLoading]) // Add authLoading to dependencies
-
+  }, [id, router, user, retryCount, authLoading])
   // Calculate amount in cents for Stripe
   const stripeAmount = orderDetails ? Math.round(orderDetails.total_amount * 100) : 0
 
@@ -141,7 +135,7 @@ export default function PaymentConfirmationPage() {
               Order Total: ${orderDetails.total_amount.toFixed(2)}
             </p>
             <PaymentForm 
-              orderId={orderId}
+              orderId={id}
               amount={stripeAmount} // Pass the amount in cents
               paymentMethodId={paymentMethod}
             />
