@@ -9,6 +9,19 @@ export async function GET() {
     publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     country: 'US', // Set your country code
     currency: 'usd',
-    paymentMethods: ['card'] // Supported payment methods
+    paymentMethods: [
+      'card',
+      'apple_pay',
+      'google_pay',
+      'ach_debit',
+      'us_bank_account',
+      'sepa_debit',
+      'ideal',
+      'paypal',
+      'sofort',
+      'afterpay_clearpay',
+      'klarna',
+      'link'
+    ] // Supported payment methods
   })
 }

@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { getOrderById } from '@/lib/actions/order-actions'
 import { StripeProvider } from '@/providers/stripe-provider'
 import { PaymentForm } from '@/components/checkout/payment-form'
+import { usePayment } from '@/contexts/PaymentContext'
 
 interface OrderDetails {
   id: string
@@ -20,6 +21,8 @@ export default function PaymentConfirmationPage() {
   const router = useRouter() 
   const params = useParams()
   const { user, loading: authLoading } = useAuth() // Add authLoading state
+  const { paymentMethod } = usePayment()
+
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -140,6 +143,7 @@ export default function PaymentConfirmationPage() {
             <PaymentForm 
               orderId={orderId}
               amount={stripeAmount} // Pass the amount in cents
+              paymentMethodId={paymentMethod}
             />
           </div>
         </StripeProvider>

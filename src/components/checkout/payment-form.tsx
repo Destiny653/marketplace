@@ -1,22 +1,26 @@
 import { useState, useEffect } from 'react'
-import { StripeElementsForm } from '@/components/ui/stripe-element'
+import { StripePaymentForm } from '@/components/ui/stripe-payment-form'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { getPaymentMethodById } from '@/lib/constants/payment-methods'
 
-/**
- * Payment form wrapper that fetches client secret and handles payment
- * @param {string} orderId - The order ID being paid for
- * @param {number} amount - The payment amount in cents
- */
-export function PaymentForm({ orderId, amount }: { orderId: string; amount: number }) {
+export function PaymentForm({ 
+  orderId, 
+  amount,
+  paymentMethodId 
+}: { 
+  orderId: string; 
+  amount: number;
+  paymentMethodId: any;
+}) {
   const router = useRouter()
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const paymentMethod = getPaymentMethodById(paymentMethodId)
 
   useEffect(() => {
     const fetchClientSecret = async () => {
       try {
-        // Validate amount
         if (isNaN(amount)) {
           throw new Error('Invalid payment amount')
         }
@@ -26,7 +30,8 @@ export function PaymentForm({ orderId, amount }: { orderId: string; amount: numb
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             orderId,
-            amount: Math.round(amount) // Ensure amount is a whole number
+            amount: Math.round(amount),
+            payment_method_type: paymentMethod?.type
           })
         })
 
@@ -47,7 +52,7 @@ export function PaymentForm({ orderId, amount }: { orderId: string; amount: numb
     }
 
     fetchClientSecret()
-  }, [orderId, router, amount])
+  }, [orderId, router, amount, paymentMethod?.type])
 
   const handleSuccess = () => {
     toast.success('Payment successful!')
@@ -69,9 +74,10 @@ export function PaymentForm({ orderId, amount }: { orderId: string; amount: numb
   return (
     <div className="max-w-md mx-auto">
       <h2 className="text-xl font-semibold mb-4">Payment Details</h2>
-      <StripeElementsForm 
+      <StripePaymentForm 
         clientSecret={clientSecret} 
-        onSuccess={handleSuccess} 
+        onSuccess={handleSuccess}
+        paymentMethodType={paymentMethodId}
       />
     </div>
   )

@@ -6,6 +6,7 @@ import CartAccessProvider from "@/components/layout/CartAccessProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { Toaster } from "sonner"; // Import the Toaster component from sonner
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import { PaymentProvider } from "@/contexts/PaymentContext";
 
 export const metadata: Metadata = {
   title: "Marketplace - Your Online Shopping Destination",
@@ -21,18 +22,20 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased">
         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
         >
           <Header />
           <AuthProvider>
-            <CartAccessProvider>
-              <main className="min-h-screen">{children}</main>
-              {/* Add the Sonner Toaster component here */}
-              <Toaster position="top-right" richColors closeButton />
-            </CartAccessProvider>
+            <PaymentProvider>
+              <CartAccessProvider>
+                <main className="min-h-screen">{children}</main>
+                {/* Add the Sonner Toaster component here */}
+                <Toaster position="top-right" richColors closeButton />
+              </CartAccessProvider>
+            </PaymentProvider>
           </AuthProvider>
           <Footer />
         </ThemeProvider>

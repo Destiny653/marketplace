@@ -1,21 +1,32 @@
-'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { paymentMethods } from '@/lib/constants/payment-methods'
 import { CreditCard, Wallet, Banknote } from 'lucide-react'
+import { usePayment } from '@/contexts/PaymentContext'
 
-/**
- * Component for selecting payment method
- * @param {function} onSelect - Callback when method is selected
- */
-export function PaymentMethods({ onSelect }: { onSelect: (method: string) => void }) {
-  const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
+export function PaymentMethods({ 
+  onSelect,
+  selectedMethod: initialSelectedMethod 
+}: { 
+  onSelect: (method: string) => void
+  selectedMethod?: string | null
+}) {
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(initialSelectedMethod || null)
+  const { setPaymentMethod } = usePayment()
 
+
+  
   const handleSelect = (methodId: string) => {
     setSelectedMethod(methodId)
+    setPaymentMethod(methodId)
     onSelect(methodId)
   }
-
+  
+  useEffect(() => {
+    if (initialSelectedMethod) {
+      setSelectedMethod(initialSelectedMethod)
+    }
+  }, [initialSelectedMethod])
+  
   const getMethodIcon = (method: string) => {
     switch (method) {
       case 'card': return <CreditCard className="h-5 w-5" />
