@@ -12,6 +12,8 @@ import { StripeError } from '@stripe/stripe-js'
 import { FormEvent, useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { User } from '@supabase/supabase-js'
+import axios from 'axios'
+import toast from 'react-hot-toast'
 
 interface Address {
   fullName?: string
@@ -36,11 +38,13 @@ interface Order {
 interface StripePaymentFormProps {
   clientSecret: string
   onSuccess: () => void
-  paymentMethodType: string
+  paymentMethodType: 'card' | 'apple_pay' | 'google_pay' | 'link' |
+  'us_bank_account' | 'sepa_debit' | 'ideal' |
+  'paypal' | 'sofort' | 'afterpay_clearpay' |
+  'klarna' | 'bitcoin'
   orderId: string
 }
 
-// Define a custom error type that extends StripeError to include the element property
 interface ElementsSubmitError extends StripeError {
   element?: {
     focus: () => void;
@@ -60,9 +64,21 @@ export function StripePaymentForm({
   const [user, setUser] = useState<User | null>(null)
   const [order, setOrder] = useState<Order | null>(null)
   const [paymentElementLoaded, setPaymentElementLoaded] = useState(false)
+  const [bitcoinPaymentUrl, setBitcoinPaymentUrl] = useState<string | null>(null)
+  const [isWaitingBitcoinPayment, setIsWaitingBitcoinPayment] = useState(false)
   const supabase = createClientComponentClient()
 
-  // Validate orderId format
+  // Coinbase Commerce config
+  const coinbaseConfig = {
+    headers: {
+      "X-CC-Api-Key": process.env.NEXT_PUBLIC_COINBASE_API_KEY,
+      "Content-Type": "application/json",
+      "X-CC-Version": "2018-03-22"
+    }
+  }
+
+  console.log("ConfigCoinbase: ", coinbaseConfig)
+
   const isValidUUID = (uuid: string) => {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid)
   }
@@ -101,9 +117,62 @@ export function StripePaymentForm({
     fetchData()
   }, [supabase, orderId])
 
+  const initiateBitcoinPayment = async () => {
+    if (!order || !user) return
+
+    try {
+      setProcessing(true)
+      setError(null)
+      setIsWaitingBitcoinPayment(true)
+
+      const paymentData = {
+        name: `Order #${order.id}`,
+        description: `Payment for order ${order.id}`,
+        pricing_type: 'fixed_price',
+        local_price: {
+          amount: (order.total_amount / 100).toFixed(2),
+          currency: 'USD'
+        },
+        metadata: {
+          order_id: order.id,
+          user_id: user.id,
+          user_email: user.email || ''
+        },
+        redirect_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
+        cancel_url: `${window.location.origin}/checkout?order_id=${orderId}`
+      }
+
+      const response = await axios.post(
+        'https://api.commerce.coinbase.com/charges',
+        paymentData,
+        coinbaseConfig
+      )
+
+      setBitcoinPaymentUrl(response.data.data.hosted_url)
+      toast.success('Redirecting to Bitcoin payment...')
+    } catch (err) {
+      const error = err as Error
+      setError(error.message || 'Failed to initiate Bitcoin payment')
+      console.error('Bitcoin payment error:', error.message, error)
+      toast.error('Failed to initiate Bitcoin payment')
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
 
+    // If Bitcoin payment is already initiated, don't proceed with Stripe
+    if (bitcoinPaymentUrl) return
+
+    // Handle Bitcoin payment separately
+    if (paymentMethodType === 'bitcoin') {
+      await initiateBitcoinPayment()
+      return
+    }
+
+    // Rest of Stripe payment handling
     if (!stripe || !elements) {
       setError('Payment system not ready')
       return
@@ -126,7 +195,6 @@ export function StripePaymentForm({
       // First submit the elements to validate them
       const { error: submitError } = await elements.submit()
       if (submitError) {
-        // Cast to our custom error type that includes the element property
         const elementError = submitError as ElementsSubmitError
         if (elementError.element) {
           elementError.element.focus()
@@ -236,9 +304,7 @@ export function StripePaymentForm({
         case 'afterpay_clearpay':
           result = await stripe.confirmAfterpayClearpayPayment(clientSecret, {
             payment_method: {
-              afterpay_clearpay: {
-                // Add shipping details from order
-              }
+              afterpay_clearpay: {}
             },
             return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
           })
@@ -291,17 +357,53 @@ export function StripePaymentForm({
       const error = err as StripeError | Error
       setError(error.message || 'Payment processing failed')
       console.error('Payment error:', error)
+      toast.error(error.message || 'Payment processing failed')
     } finally {
       setProcessing(false)
     }
   }
 
   const renderPaymentElement = () => {
+    if (bitcoinPaymentUrl) {
+      return (
+        <div className="text-center py-4">
+          <p className="mb-4">Your Bitcoin payment is being processed.</p>
+          <a
+            href={bitcoinPaymentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded"
+          >
+            Complete Bitcoin Payment
+          </a>
+        </div>
+      )
+    }
+
     if (!stripe || !elements) {
       return <div className="text-center py-8">Loading payment form...</div>
     }
 
     switch (paymentMethodType) {
+      case 'bitcoin':
+        return (
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">
+                    You will be redirected to Coinbase Commerce to complete your Bitcoin payment.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
       case 'card':
         return (
           <CardElement
@@ -444,24 +546,26 @@ export function StripePaymentForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         {renderPaymentElement()}
 
-        <button
-          type="submit"
-          disabled={!stripe || processing || isPaymentElementLoading}
-          className={`w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors
-            ${!stripe || processing || isPaymentElementLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          {processing ? (
-            <span className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Processing Payment...
-            </span>
-          ) : (
-            `Pay $${(order.total_amount / 100).toFixed(2)}`
-          )}
-        </button>
+        {!bitcoinPaymentUrl && (
+          <button
+            type="submit"
+            disabled={!stripe || processing || isPaymentElementLoading}
+            className={`w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors
+              ${!stripe || processing || isPaymentElementLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {processing ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {paymentMethodType === 'bitcoin' ? 'Preparing Bitcoin Payment...' : 'Processing Payment...'}
+              </span>
+            ) : (
+              `Pay $${(order.total_amount / 100).toFixed(2)}`
+            )}
+          </button>
+        )}
       </form>
     </div>
   )
