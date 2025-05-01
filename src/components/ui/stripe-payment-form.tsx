@@ -130,7 +130,7 @@ export function StripePaymentForm({
         description: `Payment for order ${order.id}`,
         pricing_type: 'fixed_price',
         local_price: {
-          amount: (order.total_amount / 100).toFixed(2),
+          amount: (order.total_amount * 100).toFixed(2),
           currency: 'USD'
         },
         metadata: {
@@ -518,7 +518,7 @@ export function StripePaymentForm({
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h3 className="font-medium text-lg mb-2">Order Summary</h3>
         <p className="text-gray-700">Order ID: {order.id}</p>
-        <p className="text-gray-700">Total: ${(order.total_amount / 100).toFixed(2)}</p>
+        <p className="text-gray-700">Total: ${(order.total_amount).toFixed(2)}</p>
 
         <div className="mt-4">
           <h4 className="font-medium">Shipping Address:</h4>
@@ -562,7 +562,7 @@ export function StripePaymentForm({
                 {paymentMethodType === 'bitcoin' ? 'Preparing Bitcoin Payment...' : 'Processing Payment...'}
               </span>
             ) : (
-              `Pay $${(order.total_amount / 100).toFixed(2)}`
+              `Pay $${(order.total_amount).toFixed(2)}`
             )}
           </button>
         )}
