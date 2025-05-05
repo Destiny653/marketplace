@@ -68,6 +68,27 @@ export function StripePaymentForm({
   const [isWaitingBitcoinPayment, setIsWaitingBitcoinPayment] = useState(false)
   const supabase = createClientComponentClient()
 
+  const paymentElementOptions = {
+    layout: 'tabs' as const,
+    wallets: {
+      applePay: 'auto' as any,
+      googlePay: 'auto' as any
+    },
+    paymentMethodOrder: [
+      'apple_pay',
+      'google_pay',
+      'paypal',
+      'card',
+      'link'
+    ],
+    fields: {
+      billingDetails: {
+        name: 'auto',
+        email: 'auto'
+      }
+    }
+  }
+
   // Coinbase Commerce config
   const coinbaseConfig = {
     headers: {
@@ -75,7 +96,7 @@ export function StripePaymentForm({
       "Content-Type": "application/json",
       "X-CC-Version": "2018-03-22"
     }
-  } 
+  }
 
   const isValidUUID = (uuid: string) => {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid)
@@ -452,12 +473,10 @@ export function StripePaymentForm({
         return (
           <PaymentElement
             options={{
+              ...paymentElementOptions,
+              paymentMethodOrder: [paymentMethodType], // Force specific method
               fields: {
-                billingDetails: {
-                  name: 'auto',
-                  email: 'never',
-                  phone: 'never'
-                }
+                billingDetails: 'never' // For methods that don't need it
               }
             }}
             onReady={() => setPaymentElementLoaded(true)}
