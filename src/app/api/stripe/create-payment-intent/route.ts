@@ -17,6 +17,9 @@ export async function POST(request: Request) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount), // Convert to cents
       currency: 'usd',
+      automatic_payment_methods: {
+        enabled: true,
+      },
       metadata: {
         orderId: orderId || 'unknown'
       }
