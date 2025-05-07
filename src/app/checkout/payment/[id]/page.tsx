@@ -136,7 +136,7 @@ export default function PaymentConfirmationPage() {
             <PaymentForm 
               orderId={id}
               amount={stripeAmount} // Pass the amount in cents
-              paymentMethodId={paymentMethod}
+              paymentMethodId={paymentMethod || ""}
             />
           </div>
         </StripeProvider>
