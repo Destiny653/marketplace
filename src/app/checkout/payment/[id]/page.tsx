@@ -121,15 +121,15 @@ export default function PaymentConfirmationPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-3xl">
-      <div className="bg-white rounded-lg shadow-md p-8">
+    <div className="container mx-auto px-3 py-12 max-w-3xl">
+      <div className="bg-white rounded-lg shadow-md px-[2px] py-8">
         <h1 className="text-2xl font-bold mb-6 flex items-center">
           <CreditCard className="mr-2 h-6 w-6 text-blue-600" />
           Complete Your Payment
         </h1>
 
         <StripeProvider>
-          <div className="w-full p-6"> 
+          <div className="w-full p-4"> 
             <p className="text-gray-600 mb-6 ">
               Order Total: <span className='text-green-600'>${orderDetails.total_amount.toFixed(2)}</span>
             </p>
