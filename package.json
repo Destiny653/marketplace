@@ -22,6 +22,7 @@
     "@supabase/supabase-js": "^2.49.4",
     "@swc/core": "^1.11.21",
     "@tailwindcss/aspect-ratio": "^0.4.2",
+    "anchor": "^1.4.1",
     "autoprefixer": "^10.4.16",
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",

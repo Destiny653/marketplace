@@ -250,18 +250,7 @@ export default function Footer() {
                   <Image src="/images/payment/ethereum.svg" alt="Ethereum" width={40} height={25} />
                 </div>
               </div>
-            </div>
-            <div>
-              <h4 className="text-gray-400 mb-3">Download Our App</h4>
-              <div className="flex space-x-3">
-                <a href="#" className="block">
-                  <Image src="/app-store.svg" alt="App Store" width={120} height={40} />
-                </a>
-                <a href="#" className="block">
-                  <Image src="/google-play.svg" alt="Google Play" width={120} height={40} />
-                </a>
-              </div>
-            </div>
+            </div> 
           </div>
         </div>
 

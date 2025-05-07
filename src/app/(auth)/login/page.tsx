@@ -1,6 +1,6 @@
-'use client'
+ 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth' 
@@ -18,31 +18,38 @@ function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
+  // Combine both loading states
+  const isLoading = isSubmitting || authLoading
+
+  // Debugging effect to track state changes
+  useEffect(() => {
+    console.log('Auth loading:', authLoading, 'Submitting:', isSubmitting)
+  }, [authLoading, isSubmitting])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (isLoading) return
     
     setIsSubmitting(true)
     try {
       const { error } = await signIn(email, password)
       if (error) {
         if (error.message.includes('token') || error.message.includes('JWT')) {
-          // Handle invalid token errors specifically
           toast.error('Your session has expired. Please sign in again.')
-          // Clear any stored tokens
-          if (supabase === null || supabase === undefined) {
-            toast.error('Authentication service unavailable');
-            setIsSubmitting(false);
-            return;
+          if (!supabase) {
+            toast.error('Authentication service unavailable')
+            setIsSubmitting(false)
+            return
           }
-          
-          const supabaseClient = supabase;
-          
-          await supabaseClient.auth.signOut()
+          await supabase.auth.signOut()
         } else {
           toast.error(error.message)
         }
       } else {
         toast.success('Signed in successfully')
+        // Small delay to ensure state updates propagate
+        await new Promise(resolve => setTimeout(resolve, 100))
         handleAuthRedirect(router, searchParams, '/')
       }
     } catch (err: any) {
@@ -54,23 +61,19 @@ function LoginContent() {
 
   const handleGoogleLogin = async () => {
     try {
-      if (supabase === null || supabase === undefined) {
-        toast.error('Authentication service unavailable');
-        return;
+      if (!supabase) {
+        toast.error('Authentication service unavailable')
+        return
       }
       
-      const supabaseClient = supabase;
-      
-      const { error } = await supabaseClient.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       })
 
-      if (error) {
-        throw error
-      }
+      if (error) throw error
     } catch (error: any) {
       toast.error(error.message || 'Failed to log in with Google')
     }
@@ -103,6 +106,7 @@ function LoginContent() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -133,11 +137,13 @@ function LoginContent() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5 text-gray-400" />
@@ -154,6 +160,7 @@ function LoginContent() {
               name="remember-me"
               type="checkbox"
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              disabled={isLoading}
             />
             <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
               Remember me
@@ -163,10 +170,10 @@ function LoginContent() {
           <div>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={isLoading}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? (
+              {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 'Sign in'
@@ -188,7 +195,8 @@ function LoginContent() {
           <div className="mt-6">
             <button
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <img
                 className="h-5 w-5 mr-2"

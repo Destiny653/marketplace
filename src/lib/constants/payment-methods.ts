@@ -8,30 +8,30 @@ export const paymentMethods = [
     description: 'Visa, Mastercard, American Express, and more',
     type: PAYMENT_METHODS.STRIPE.CARD
   },
-  {
-    id: 'apple_pay',
-    name: PAYMENT_METHOD_LABELS.stripe_apple_pay,
-    description: 'Fast and secure checkout with Apple Pay',
-    type: PAYMENT_METHODS.STRIPE.APPLE_PAY
-  },
-  {
-    id: 'google_pay',
-    name: PAYMENT_METHOD_LABELS.stripe_google_pay,
-    description: 'Fast and secure checkout with Google Pay',
-    type: PAYMENT_METHODS.STRIPE.GOOGLE_PAY
-  }, 
+  // {
+  //   id: 'apple_pay',
+  //   name: PAYMENT_METHOD_LABELS.stripe_apple_pay,
+  //   description: 'Fast and secure checkout with Apple Pay',
+  //   type: PAYMENT_METHODS.STRIPE.APPLE_PAY
+  // },
+  // {
+  //   id: 'google_pay',
+  //   name: PAYMENT_METHOD_LABELS.stripe_google_pay,
+  //   description: 'Fast and secure checkout with Google Pay',
+  //   type: PAYMENT_METHODS.STRIPE.GOOGLE_PAY
+  // }, 
   {
     id: 'bitcoin',
     name: PAYMENT_METHOD_LABELS.crypto_bitcoin,
     description: 'Pay with Bitcoin',
     type: PAYMENT_METHODS.CRYPTO.BITCOIN
   }, 
-  {
-    id: 'paypal',
-    name: PAYMENT_METHOD_LABELS.paypal,
-    description: 'Pay using your PayPal account',
-    type: PAYMENT_METHODS.PAYPAL
-  },
+  // {
+  //   id: 'paypal',
+  //   name: PAYMENT_METHOD_LABELS.paypal,
+  //   description: 'Pay using your PayPal account',
+  //   type: PAYMENT_METHODS.PAYPAL
+  // },
    
 ]
 

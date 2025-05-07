@@ -236,133 +236,32 @@ export function StripePaymentForm({
         }
       }
 
-      let result
-
-      // Handle different payment methods
-      switch (paymentMethodType) {
-        case 'card':
-          result = await stripe.confirmCardPayment(clientSecret, {
-            payment_method: {
-              card: elements.getElement(CardElement)!,
-              billing_details: baseBillingDetails
-            }
-          })
-          break
-
-        case 'apple_pay':
-        case 'google_pay':
-        case 'link':
-          result = await stripe.confirmPayment({
-            elements,
-            clientSecret,
-            confirmParams: {
-              return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
-              payment_method_data: {
-                billing_details: baseBillingDetails
-              }
-            },
-          })
-          break
-
-        case 'us_bank_account':
-          result = await stripe.confirmUsBankAccountPayment(clientSecret, {
-            payment_method: {
-              us_bank_account: {
-                account_number: '000123456789',
-                routing_number: '110000000',
-                account_holder_type: 'individual'
-              },
-              billing_details: baseBillingDetails
-            },
-          })
-          break
-
-        case 'sepa_debit':
-          const ibanElement = elements.getElement(IbanElement)
-          if (!ibanElement) throw new Error('IBAN element not found')
-
-          result = await stripe.confirmSepaDebitPayment(clientSecret, {
-            payment_method: {
-              sepa_debit: ibanElement,
-              billing_details: baseBillingDetails
-            },
-            return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
-          })
-          break
-
-        case 'ideal':
-          const idealElement = elements.getElement(IdealBankElement)
-          if (!idealElement) throw new Error('iDEAL element not found')
-
-          result = await stripe.confirmIdealPayment(clientSecret, {
-            payment_method: {
-              ideal: idealElement,
-            },
-            return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
-          })
-          break
-
-        case 'paypal':
-          result = await stripe.confirmPayPalPayment(clientSecret, {
-            return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
-          })
-          break
-
-        case 'sofort':
-          result = await stripe.confirmSofortPayment(clientSecret, {
-            payment_method: {
-              sofort: {
-                country: address?.country || 'DE'
-              },
-              billing_details: baseBillingDetails
-            },
-            return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
-          })
-          break
-
-        case 'afterpay_clearpay':
-          result = await stripe.confirmAfterpayClearpayPayment(clientSecret, {
-            payment_method: {
-              afterpay_clearpay: {}
-            },
-            return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
-          })
-          break
-
-        case 'klarna':
-          result = await stripe.confirmKlarnaPayment(clientSecret, {
-            payment_method: {
-              billing_details: baseBillingDetails
-            },
-            shipping: {
-              name: order.shipping_address?.fullName || baseBillingDetails.name,
+      const { error } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        confirmParams: {
+          return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
+          receipt_email: user.email || '',
+          payment_method_data: {
+            billing_details: {
+              ...baseBillingDetails,
               address: {
-                line1: order.shipping_address?.addressLine1 || 'Unknown',
-                city: order.shipping_address?.city || 'Unknown',
-                state: order.shipping_address?.state || '',
-                postal_code: order.shipping_address?.postalCode || '',
-                country: order.shipping_address?.country || 'US'
+                ...baseBillingDetails.address,
+                country: address?.country || 'US'
               }
-            },
-            return_url: `${window.location.origin}/checkout/success?order_id=${orderId}`,
-          })
-          break
+            }
+          }
+        },
+      });
 
-        default:
-          throw new Error('Unsupported payment method')
-      }
 
-      if (result?.error) {
-        throw result.error
-      }
-
-      if (result?.paymentIntent?.status === 'succeeded') {
+      if (!error) {
         // Update order status in database
         const { error: updateError } = await supabase
           .from('orders')
           .update({
             payment_status: 'paid',
-            payment_intent_id: result.paymentIntent.id,
+            // payment_intent_id: result.paymentIntent.id,
             status: 'processing',
             updated_at: new Date().toISOString()
           })
@@ -425,78 +324,15 @@ export function StripePaymentForm({
         )
       case 'card':
         return (
-          <CardElement
-            options={{
-              style: {
-                base: {
-                  fontSize: '16px',
-                  color: '#424770',
-                  '::placeholder': { color: '#aab7c4' }
-                },
-                invalid: { color: '#9e2146' }
-              }
-            }}
-          />
-        )
-      case 'sepa_debit':
-        return <IbanElement options={{ supportedCountries: ['SEPA'] }} />
-      case 'ideal':
-        return <IdealBankElement options={{}} />
-      case 'us_bank_account':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Routing Number</label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded"
-                placeholder="110000000 (test value)"
-                defaultValue="110000000"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Account Number</label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded"
-                placeholder="000123456789 (test value)"
-                defaultValue="000123456789"
-                required
-              />
-            </div>
-          </div>
-        )
-      case 'apple_pay':
-      case 'google_pay':
-      case 'link':
-        return (
           <PaymentElement
             options={{
-              ...paymentElementOptions,
-              paymentMethodOrder: [paymentMethodType], // Force specific method
+              ...paymentElementOptions, 
               fields: {
-                billingDetails: 'never' // For methods that don't need it
+                billingDetails: 'auto'
               }
             }}
             onReady={() => setPaymentElementLoaded(true)}
           />
-        )
-      case 'paypal':
-        return (
-          <div className="space-y-4">
-            <PaymentElement
-              options={{
-                paymentMethodOrder: ['paypal'],
-                fields: {
-                  billingDetails: 'never'
-                }
-              }}
-            />
-            <p className="text-sm text-gray-500">
-              You'll be redirected to PayPal to complete your payment
-            </p>
-          </div>
         )
       default:
         return <div>Selected payment method: {paymentMethodType}</div>
