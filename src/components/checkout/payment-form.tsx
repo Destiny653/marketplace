@@ -75,8 +75,7 @@ export function PaymentForm({
       </div>
     )
   }
-
-  console.log(`Stripe keys, stripe:${stripePromise}, options:${clientSecret}`)
+ 
 
   return (
     <div className=" w-full max- mx-auto">

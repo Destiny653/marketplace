@@ -1,15 +1,16 @@
-'use client'
+ 'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Loader2, Mail, Lock, User } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { useAuth } from '@/hooks/useAuth' // Using the auth hook for consistency
 
 export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -18,75 +19,58 @@ export default function RegisterPage() {
     fullName: '',
   })
 
+  // Using the auth hook for consistency with login page
+  const { signUp, signInWithGoogle } = useAuth()
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-
+    
+    // Validation
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match')
-      setLoading(false)
       return
     }
 
     if (formData.password.length < 6) {
       toast.error('Password must be at least 6 characters')
-      setLoading(false)
       return
     }
 
-    try {
-      if (supabase === null || supabase === undefined) {
-        toast.error('Authentication service unavailable');
-        setLoading(false);
-        return;
-      }
-      
-      const supabaseClient = supabase;
-      
-      const { error } = await supabaseClient.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-          },
-        },
-      })
+    if (!formData.fullName.trim()) {
+      toast.error('Full name is required')
+      return
+    }
 
-      if (error) {
-        throw error
-      }
+    setLoading(true)
+    try {
+      const { error } = await signUp(formData.email, formData.password)
+      
+      if (error) throw error
 
       toast.success('Registration successful! Please check your email to verify your account.')
       router.push('/login')
     } catch (error: any) {
-      toast.error(error.message || 'Failed to register')
+      console.error('Registration error:', error)
+      toast.error(error.message || 'Failed to register. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   const handleGoogleSignUp = async () => {
+    setGoogleLoading(true)
     try {
-      if (supabase === null || supabase === undefined) {
-        toast.error('Authentication service unavailable');
-        return;
-      }
+      const { error } = await signInWithGoogle()
       
-      const supabaseClient = supabase;
-      
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
+      if (error) throw error
 
-      if (error) {
-        throw error
-      }
+      // The redirect will be handled by the auth callback
+      toast.success('Google sign-up successful!')
     } catch (error: any) {
+      console.error('Google sign-up error:', error)
       toast.error(error.message || 'Failed to sign up with Google')
+    } finally {
+      setGoogleLoading(false)
     }
   }
 
@@ -100,14 +84,21 @@ export default function RegisterPage() {
 
         <button
           onClick={handleGoogleSignUp}
-          className="w-full flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 mb-6"
+          disabled={googleLoading}
+          className="w-full flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 mb-6 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <img
-            className="h-5 w-5 mr-2"
-            src="https://www.svgrepo.com/show/475656/google-color.svg"
-            alt="Google logo"
-          />
-          Sign up with Google
+          {googleLoading ? (
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+          ) : (
+            <>
+              <img
+                className="h-5 w-5 mr-2"
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                alt="Google logo"
+              />
+              Sign up with Google
+            </>
+          )}
         </button>
 
         <div className="relative mb-6">
@@ -121,6 +112,7 @@ export default function RegisterPage() {
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
+            <label htmlFor="fullName" className="sr-only">Full Name</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <User className="h-5 w-5 text-gray-400" />
@@ -134,11 +126,13 @@ export default function RegisterPage() {
                 placeholder="Full Name"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                disabled={loading}
               />
             </div>
           </div>
 
           <div>
+            <label htmlFor="email" className="sr-only">Email Address</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Mail className="h-5 w-5 text-gray-400" />
@@ -153,11 +147,13 @@ export default function RegisterPage() {
                 placeholder="Email Address"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={loading}
               />
             </div>
           </div>
 
           <div>
+            <label htmlFor="password" className="sr-only">Password</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock className="h-5 w-5 text-gray-400" />
@@ -167,15 +163,18 @@ export default function RegisterPage() {
                 name="password"
                 type={showPassword ? 'text' : 'password'}
                 required
+                minLength={6}
                 className="appearance-none block w-full pl-11 pr-10 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="Password (min. 6 characters)"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                disabled={loading}
               />
               <button
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5 text-gray-400" />
@@ -187,6 +186,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
+            <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock className="h-5 w-5 text-gray-400" />
@@ -196,10 +196,12 @@ export default function RegisterPage() {
                 name="confirmPassword"
                 type={showPassword ? 'text' : 'password'}
                 required
+                minLength={6}
                 className="appearance-none block w-full pl-11 pr-3 py-2.5 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                disabled={loading}
               />
             </div>
           </div>
@@ -208,7 +210,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
