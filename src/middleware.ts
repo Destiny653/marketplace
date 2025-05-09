@@ -2,40 +2,68 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Define protected routes that require authentication
+// Define protected and public routes
 const protectedRoutes = [
-  '/checkout',
+  // '/checkout',
   '/wishlist',
-  '/account',
+  // '/account',
   // Add other protected routes here
+]
+
+const publicRoutes = [
+  '/login',
+  '/signup',
+  '/forgot-password',
+  // Add other public routes here
 ]
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
   
-  // Refresh session if expired - required for Supabase auth
-  const {
-    data: { session },
+  // Get session and user data in a single call
+  const { 
+    data: { session }, 
+    error
   } = await supabase.auth.getSession()
 
-  // Check if the current path is a protected route
+  // Handle any auth errors
+  if (error) {
+    console.error('Auth error in middleware:', error)
+    // Optionally redirect to error page or handle differently
+  }
+
+  // Check route protection status
   const isProtectedRoute = protectedRoutes.some(route => 
     req.nextUrl.pathname.startsWith(route)
   )
+  const isPublicRoute = publicRoutes.includes(req.nextUrl.pathname)
 
-  // If it's a protected route and there's no session, redirect to login
+  // Redirect logic for protected routes
   if (isProtectedRoute && !session) {
     const redirectUrl = new URL('/login', req.url)
-    // Add the original URL as a query parameter to redirect back after login
     redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
-}
+  }
 
+  // Redirect logged-in users away from public auth pages
+  if (isPublicRoute && session) {
+    return NextResponse.redirect(new URL('/', req.url))
+  }
+ 
   return res
 }
 
-// Apply this middleware to all routes except static assets
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.svg).*)'],
+  matcher: [
+    /*
+     * Match all request paths except for:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - svg files
+     * - public routes (optional, if you want to exclude them)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.svg|login|signup|forgot-password).*)',
+  ],
 }

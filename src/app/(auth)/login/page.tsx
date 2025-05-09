@@ -1,9 +1,9 @@
- 'use client'
+'use client'
 
 import { useState, Suspense, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '@/hooks/useAuth' 
+import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase/client'
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react'
 import { toast } from 'sonner'
@@ -14,10 +14,10 @@ function LoginContent() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { signIn, loading: authLoading } = useAuth()
+  const { signIn, loading: authLoading, signInWithGoogle } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   // Combine both loading states
   const isLoading = isSubmitting || authLoading
 
@@ -28,9 +28,9 @@ function LoginContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (isLoading) return
-    
+
     setIsSubmitting(true)
     try {
       const { error } = await signIn(email, password)
@@ -60,22 +60,26 @@ function LoginContent() {
   }
 
   const handleGoogleLogin = async () => {
-    try {
-      if (!supabase) {
-        toast.error('Authentication service unavailable')
-        return
-      }
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
+    if (isLoading) return
 
-      if (error) throw error
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to log in with Google')
+    setIsSubmitting(true)
+    try {
+      console.log('Initiating Google sign-in...') // Debug log
+      const { error } = await signInWithGoogle()
+      if (error) {
+        console.error('Google sign-in error:', error) // Debug log
+        toast.error(error.message || 'Failed to sign in with Google')
+      } else {
+        console.log('Google sign-in successful') // Debug log
+        toast.success('Signed in with Google successfully')
+        await new Promise(resolve => setTimeout(resolve, 100))
+        handleAuthRedirect(router, searchParams, '/')
+      }
+    } catch (err: any) {
+      console.error('Unexpected error during Google sign-in:', err) // Debug log
+      toast.error(err.message || 'An unexpected error occurred')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 

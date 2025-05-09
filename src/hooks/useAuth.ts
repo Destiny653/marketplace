@@ -104,25 +104,46 @@ export function useAuth(): AuthReturnType {
       setLoading(false)
     }
   }, [supabase, getSession])
+  const checkAuth = useCallback(async (): Promise<void> => {
+    try {
+      setLoading(true)
+      // First try to get the user directly
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      
+      if (!userError && user) {
+        setUser(user)
+        return
+      }
+      
+      // Fallback to session if getUser fails
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (error) throw error
+      setUser(session?.user ?? null)
+    } catch (err) {
+      console.error("Authentication error:", err)
+      setError(err as AuthError)
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [supabase])
 
   useEffect(() => {
-    getSession()
+    checkAuth()
 
-    const { data: { subscription } }: AuthStateChangeResponse = supabase.auth.onAuthStateChange(
-      async (event: string, session: Session | null): Promise<void> => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log(`Auth state changed: ${event}`)
         setUser(session?.user ?? null)
-        
-        if (['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED'].includes(event)) {
-          console.log(`Auth event: ${event}`)
-          await getSession()
-        }
+        await checkAuth()
       }
     )
 
     return () => {
       subscription?.unsubscribe()
     }
-  }, [supabase, getSession])
+  }, [supabase, checkAuth])
 
   const signIn = useCallback(async (email: string, password: string): Promise<{ error: AuthError | null }> => {
     try {
@@ -189,14 +210,15 @@ export function useAuth(): AuthReturnType {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace-five-gold.vercel.app'}/auth/callback`
-        },
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
       })
       
-      if (error) {
-        throw error
-      }
-      
+      if (error) throw error
       return { error: null }
     } catch (err) {
       const authError = err as AuthError
