@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { Database } from './types'
 
-// Runtime validation of environment variables
 const getSupabaseConfig = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplave-five-gold.vercel.app'
 
   if (!supabaseUrl || !supabaseAnonKey) {
     if (process.env.NODE_ENV === 'development') {
@@ -18,10 +18,9 @@ const getSupabaseConfig = () => {
     return null
   }
 
-  return { supabaseUrl, supabaseAnonKey }
+  return { supabaseUrl, supabaseAnonKey, siteUrl }
 }
 
-// Singleton client instance
 let client: ReturnType<typeof createClient<Database>> | null = null
 
 export const getSupabaseClient = () => {
@@ -33,7 +32,9 @@ export const getSupabaseClient = () => {
   client = createClient<Database>(config.supabaseUrl, config.supabaseAnonKey, {
     auth: {
       persistSession: true,
-      autoRefreshToken: true
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce'
     }
   })
 
@@ -41,3 +42,13 @@ export const getSupabaseClient = () => {
 }
 
 export const supabase = getSupabaseClient()
+
+// For auth methods that need redirect, specify it at call time
+export const signInWithGoogle = () => {
+  return supabase?.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace-five-gold.vercel.app'}/auth/callback`
+    }
+  })
+}
