@@ -1,36 +1,39 @@
+// app/auth/callback/route.ts
 import { createClient } from '@/lib/utils/supabase/client'
 import { NextResponse } from 'next/server'
-
-function getBaseUrl(request: Request) {
-  if (process.env.NODE_ENV === 'development') {
-    return new URL(request.url).origin
-  }
-  
-  // Use configured site URL in production
-  const productionUrl = process.env.NEXT_PUBLIC_SITE_URL
-  
-  // Fallback to Vercel's provided URL if needed
-  const vercelUrl = process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}`
-    : null
-    
-  return productionUrl || vercelUrl || new URL(request.url).origin
-}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
-  const baseUrl = getBaseUrl(request)
+  const error = searchParams.get('error')
+  
+  // Get the correct base URL for redirects
+  const baseUrl = process.env.NODE_ENV === 'production'
+    ? process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace-five-gold.vercel.app'
+    : new URL(request.url).origin
 
+  // If there's an error in the OAuth flow
+  if (error) {
+    return NextResponse.redirect(`${baseUrl}/auth/auth-code-error?error=${error}`)
+  }
+
+  // If we have a code, exchange it for a session
   if (code) {
     const supabase = createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (!error) {
+    const { error: authError } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (!authError) {
+      // Successful authentication
       return NextResponse.redirect(`${baseUrl}${next}`)
+    } else {
+      // Failed to exchange code
+      return NextResponse.redirect(
+        `${baseUrl}/auth/auth-code-error?error=${encodeURIComponent(authError.message)}`
+      )
     }
   }
 
-  return NextResponse.redirect(`${baseUrl}/auth/auth-code-error`)
+  // No code and no error - malformed request
+  return NextResponse.redirect(`${baseUrl}/auth/auth-code-error?error=invalid_request`)
 }
