@@ -41,14 +41,4 @@ export const getSupabaseClient = () => {
   return client
 }
 
-export const supabase = getSupabaseClient()
-
-// For auth methods that need redirect, specify it at call time
-export const signInWithGoogle = () => {
-  return supabase?.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://marketplace-five-gold.vercel.app'}/auth/callback`
-    }
-  })
-}
+export const supabase = getSupabaseClient() 
