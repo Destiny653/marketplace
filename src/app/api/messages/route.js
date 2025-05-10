@@ -1,52 +1,82 @@
-import { createClient } from '@supabase/supabase-js'
 import nodemailer from 'nodemailer'
+import { supabase } from '../../../lib/supabase/client'
+import { NextResponse } from 'next/server'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail', // or your email service
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-})
 
-export default async function POST (req, res) { 
 
-  try {
-    const { name, email, phone, subject, message, userId } = req.body
-    console.log('Received data:', req.body)
+export async function POST(req) { // Only need req parameter when using NextResponse
 
-    // Insert message into database
-    const { data, error } = await supabase
-      .from('messages')
-      .insert([
-        {
-          user_id: userId,
-          name,
-          email,
-          phone,
-          subject,
-          message,
-          status: 'new'
+    try {
+        const emailUser = process.env.EMAIL_USER
+        const emailPass = process.env.EMAIL_PASSWORD
+        const emailAdmin = process.env.ADMIN_EMAIL
+        // Check content-type
+        const contentType = req.headers.get('content-type')
+        if (!contentType || !contentType.includes('application/json')) {
+            return NextResponse.json(
+                { success: false, error: true, message: 'Content-Type must be application/json' },
+                { status: 415 }
+            )
         }
-      ])
-      .select()
 
-    if (error) throw error
 
-    // Send email using Nodemailer
-const mailOptions = {
-    from: `"Your Website" <${process.env.EMAIL_USER}>`,
-    to: process.env.ADMIN_EMAIL,
-    subject: `New Message: ${subject}`,
-    text: `
+        const transporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            service: 'gmail',
+            auth: {
+                user: emailUser,
+                pass: emailPass,
+            },
+        })
+
+        try {
+            await transporter.verify()
+            console.log('Server is ready to send emails')
+        } catch (verifyError) {
+            console.error('Email server verification failed:', verifyError)
+            throw new Error('Email service configuration error')
+        }
+        // Parse the request body
+        const body = await req.json() 
+
+        const { name, email, phone, subject, message, userId } = body
+
+        if (!userId) {
+            return NextResponse.json(
+                { success: false, error: true, message: 'User ID is required' },
+                { status: 400 }
+            )
+        }
+
+        // Database insertion
+        const { data, error } = await supabase
+            .from('messages')
+            .insert([{
+                user_id: userId,
+                name,
+                email,
+                phone,
+                subject,
+                message,
+                status: 'new'
+            }])
+            .select()
+
+        if (error) throw error
+
+        // Email sending (your beautiful template remains the same)
+        const mailOptions = {
+            from: `"Your Website" <${email}>`,
+            to: emailAdmin,
+            subject: `New Message: ${subject}`,
+            text: `
       New Message Notification
       ========================
       
-      You've received a new message through your website contact form.
+      You've received a new message from Marketplace contact form.
       
       Contact Details:
       ---------------
@@ -61,7 +91,7 @@ const mailOptions = {
       
       Sent at: ${new Date().toLocaleString()}
     `,
-    html: `
+            html: `
       <!DOCTYPE html>
       <html>
       <head>
@@ -179,12 +209,19 @@ const mailOptions = {
       </body>
       </html>
     `
-  }
-    await transporter.sendMail(mailOptions)
+        }
+        await transporter.sendMail(mailOptions)
 
-    return res.status(200).json({ success: true, message: data[0] })
-  } catch (error) {
-    console.error('Error:', error)
-    return res.status(500).json({ success: false, error: true, message:error.message })
-  }
+        return NextResponse.json(
+            { success: true, message: 'Message sent successfully!', data: data[0] },
+            { status: 201 }
+        )
+
+    } catch (error) {
+        console.error('Error:', error)
+        return NextResponse.json(
+            { success: false, message: 'Error sending message: ' + error.message, error: true },
+            { status: 500 }
+        )
+    }
 }

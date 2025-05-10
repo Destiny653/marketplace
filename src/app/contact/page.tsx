@@ -36,34 +36,21 @@ export default function ContactPage() {
     message: '',
   })
 
+  console.log("userDta: ",user?.id, user)
+  const userid = user?.id 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    try {
-      if (!supabase) {
-        throw new Error('Database service unavailable');
+    try { 
+      if(!user){
+        toast.error("Please sign in to send a message.")
+        return
       }
-      
       // Format the phone number with country code
-      const fullPhoneNumber = `${formData.countryCode} ${formData.phone}`
-
-      // Insert the contact form submission into the database
-      const { error } = await supabase.from('messages').insert({
-        name: formData.name,
-        email: formData.email,
-        countryCode: formData.countryCode,
-        phone: fullPhoneNumber,
-        subject: formData.subject,
-        message: formData.message,
-        status: 'new'
-      })
-
-      if (error) {
-        throw error
-      }
- 
-      
+      const fullPhoneNumber = `${formData.countryCode} ${formData.phone}` 
+        
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: {
@@ -75,13 +62,18 @@ export default function ContactPage() {
           phone: fullPhoneNumber,
           subject: formData.subject,
           message: formData.message,
-          userId: user?.id || null
+          userId: userid
         }),
       })
 
       const data = await response.json()
       if (!response.ok) { 
         toast.error(data.message || 'Failed to send message. Please try again later.')
+      }
+
+      if(data.error){
+        toast.error(data.message || 'Failed to send message. Please try again later.')
+        return
       }
 
       // Reset form after successful submission
@@ -94,7 +86,7 @@ export default function ContactPage() {
         message: '',
       })
 
-      toast.success('Thank you for your message! We will get back to you soon.')
+      toast.success(data.message || 'Message sent successfully! We will get back to you soon.')
     } catch (error: any) {
       toast.error(error.message || 'Failed to send message. Please try again later.')
     } finally {
