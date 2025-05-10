@@ -163,12 +163,12 @@ export async function POST(req) { // Only need req parameter when using NextResp
       </head>
       <body>
         <div class="header">
-          <a href="https://yourwebsite.com" class="logo">Your Brand</a>
+          <a href="https://yourwebsite.com" class="logo">Marketplace</a>
         </div>
         
         <div class="card">
           <h1>New Message Notification</h1>
-          <p>You've received a new message through your website contact form.</p>
+          <p>You've received a new message from Marketplae contact form.</p>
           
           <div class="divider"></div>
           
