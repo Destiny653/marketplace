@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Loader2, Mail, Phone, User, MessageSquare, MapPin } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
 
 // Country codes for phone numbers
 const countryCodes = [
@@ -24,6 +25,7 @@ const countryCodes = [
 ]
 
 export default function ContactPage() {
+  const {user} = useAuth()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -47,9 +49,10 @@ export default function ContactPage() {
       const fullPhoneNumber = `${formData.countryCode} ${formData.phone}`
 
       // Insert the contact form submission into the database
-      const { error } = await supabase.from('contact_submissions').insert({
+      const { error } = await supabase.from('messages').insert({
         name: formData.name,
         email: formData.email,
+        countryCode: formData.countryCode,
         phone: fullPhoneNumber,
         subject: formData.subject,
         message: formData.message,
@@ -58,6 +61,27 @@ export default function ContactPage() {
 
       if (error) {
         throw error
+      }
+ 
+      
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: fullPhoneNumber,
+          subject: formData.subject,
+          message: formData.message,
+          userId: user?.id || null
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) { 
+        toast.error(data.message || 'Failed to send message. Please try again later.')
       }
 
       // Reset form after successful submission
