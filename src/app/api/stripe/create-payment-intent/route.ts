@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount), // Convert to cents
       currency: 'usd',
-      payment_method_types: ['card', 'google_pay'], // Explicitly enable Google Pay
+      payment_method_types: ['card', 'google_pay', 'apple_pay'], // Explicitly enable Google Pay
       automatic_payment_methods: {
         enabled: true, // Still allow other methods dynamically
       },
