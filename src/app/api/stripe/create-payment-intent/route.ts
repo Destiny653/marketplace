@@ -1,5 +1,5 @@
 import { stripe } from '@/lib/stripe/client';
-import { NextResponse } from 'next/server'; 
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
@@ -13,20 +13,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create Payment Intent
+    // Create Payment Intent with Google Pay support
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount), // Convert to cents
       currency: 'usd',
+      payment_method_types: ['card', 'google_pay'], // Explicitly enable Google Pay
       automatic_payment_methods: {
-        enabled: true,
+        enabled: true, // Still allow other methods dynamically
       },
       metadata: {
-        orderId: orderId || 'unknown'
-      }
+        orderId: orderId || 'unknown',
+      },
     });
 
     return NextResponse.json({
-      clientSecret: paymentIntent.client_secret
+      clientSecret: paymentIntent.client_secret,
     });
 
   } catch (err) {
