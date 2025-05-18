@@ -11,6 +11,9 @@ import { PaymentProvider } from "@/contexts/PaymentContext";
 export const metadata: Metadata = {
   title: "Marketplace - Your Online Shopping Destination",
   description: "Find the best products at great prices in our online marketplace",
+  icons: {
+    icon: "./logo.png"
+  }
 };
 
 export default function RootLayout({
