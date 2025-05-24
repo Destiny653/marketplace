@@ -26,13 +26,21 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      clientSecret: paymentIntent.client_secret
+      clientSecret: paymentIntent.client_secret,
+      orderId: paymentIntent.metadata.orderId,
+      paymentIntentId: paymentIntent.id,
+      amount: paymentIntent.amount,
+      status: paymentIntent.status,
+      created: paymentIntent.created,
+      currency: paymentIntent.currency,
+      paymentMethodTypes: paymentIntent.payment_method_types,
+      error: null,
+      success: true,
     });
-
   } catch (err) {
     console.error('Stripe error:', err);
     return NextResponse.json(
-      { error: 'Failed to create payment intent' },
+      { error: 'Failed to create payment intent: '+err},
       { status: 500 }
     );
   }

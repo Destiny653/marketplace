@@ -42,16 +42,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       image: product.image_url,
       quantity: 1,
       stock: product.stock_quantity
-    })
-
-    // Add notification when product is added to cart
-    toast.success(`${product.name} added to cart`, {
-      description: '1 item added',
-      action: {
-        label: 'View Cart',
-        onClick: () => window.location.href = '/cart'
-      }
-    })
+    }) 
   }
 
   const handleToggleLike = async (e: React.MouseEvent<HTMLButtonElement>) => {

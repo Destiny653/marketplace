@@ -79,6 +79,15 @@ export const useCart = create<CartStore>()(
               syncCartWithSupabase(state.userId, newState.items)
             }
 
+               toast.success(`${item.name} added to cart`, {
+                  description: '1 item added to cart',
+                  action: {
+                    label: 'View Cart',
+                    onClick: () => window.location.href = '/cart'
+                  }
+                })
+              
+
             return newState
           }),
 

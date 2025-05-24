@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { getPaymentMethodById } from '@/lib/constants/payment-methods'
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { updateOrderPaymentStatus } from '@/lib/actions/order-actions';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -45,7 +46,27 @@ export function PaymentForm({
           throw new Error(errorData.message || 'Failed to create payment')
         }
 
-        const { clientSecret } = await response.json()
+        const { clientSecret ,
+          paymentIntentId, 
+          status,
+          created,
+          currency,
+          paymentMethodTypes,
+          error,
+          success,
+         } = await response.json() 
+         console.log('Payment Intent:', {
+          clientSecret,
+          paymentIntentId,
+          status,
+          created,
+          currency,
+          paymentMethodTypes,
+          error,
+          success,
+         })
+        await updateOrderPaymentStatus(orderId, paymentIntentId)
+
         setClientSecret(clientSecret)
       } catch (err) {
         console.error('Payment initialization error:', err)

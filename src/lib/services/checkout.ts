@@ -3,8 +3,7 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { CartItem } from '@/hooks/useCart'
-import { v4 as uuidv4 } from 'uuid'
-import { NextResponse } from 'next/server'
+import { v4 as uuidv4 } from 'uuid' 
 
 // Function to validate and convert product IDs
 function validateAndConvertProductId(productId: string): string {
@@ -37,6 +36,7 @@ export interface CheckoutData {
   shippingAddress: ShippingAddress
   billingAddress?: ShippingAddress
   shippingMethod: string
+  paymentMethod: string
 }
 
 export interface CheckoutResult {

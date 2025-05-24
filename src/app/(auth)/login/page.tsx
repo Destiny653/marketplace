@@ -69,9 +69,7 @@ function LoginContent() {
       if (error) {
         console.error('Google sign-in error:', error) // Debug log
         toast.error(error.message || 'Failed to sign in with Google')
-      } else {
-        console.log('Google sign-in successful') // Debug log
-        toast.success('Signed in with Google successfully')
+      } else { 
         await new Promise(resolve => setTimeout(resolve, 100))
         handleAuthRedirect(router, searchParams, '/')
       }

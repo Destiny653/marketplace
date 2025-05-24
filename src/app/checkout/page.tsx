@@ -1,8 +1,7 @@
  'use client'
 
 import { useEffect, useState } from 'react'
-import { useCart } from '@/hooks/useCart'
-import CartSummary from '@/components/cart/CartSummary'
+import { useCart } from '@/hooks/useCart' 
 import { useRouter } from 'next/navigation'
 import { CheckCircle, ChevronRight, CreditCard, MapPin, Truck, User, AlertCircle } from 'lucide-react'
 import Image from 'next/image'
@@ -114,6 +113,7 @@ export default function CheckoutPage() {
         items,
         shippingAddress,
         shippingMethod: formData.shippingMethod,
+        paymentMethod: formData.paymentMethod,
       })
       console.log('Checkout result:', result)
       if (!result.success) {
@@ -121,10 +121,9 @@ export default function CheckoutPage() {
       }
       
       // Clear the cart after successful checkout
-      // clearCart()
       
       // Redirect to payment page with order ID
-      router.push(`/checkout/payment/${result.orderId}`)
+      router.push(`/checkout/payment/${result.orderId}`) 
     } catch (error: any) {
       console.error('Checkout error:', error)
       setError(error.message || 'An error occurred during checkout')

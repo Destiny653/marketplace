@@ -125,7 +125,7 @@ export async function getOrderPaymentStatus(orderId: string) {
 /**
  * Update order payment status
  */
-export async function updateOrderPaymentStatus(orderId: string, paymentStatus: string) {
+export async function updateOrderPaymentStatus(orderId: string, paymentStatus: string, paymentIntentId: string) {
   const supabase = createServerComponentClient({ cookies })
   
   try {
@@ -142,7 +142,7 @@ export async function updateOrderPaymentStatus(orderId: string, paymentStatus: s
     // Update the order payment status
     const { data, error } = await supabase
       .from('orders')
-      .update({ payment_status: paymentStatus })
+      .update({ payment_status: paymentStatus, payment_intent_id: paymentIntentId })
       .eq('id', orderId)
       .eq('user_id', session.user.id)
       .select()
