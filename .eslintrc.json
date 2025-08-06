@@ -31,7 +31,7 @@
     "react/jsx-no-duplicate-props": [
       "error",
       {
-        "ignoreCase": true 
+        "ignoreCase": true
       }
     ]
   }

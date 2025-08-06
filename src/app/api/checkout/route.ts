@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       }
       
       const stripe = new Stripe(stripeKey, {
-        apiVersion: '2025-03-31.basil',
+        apiVersion: '2025-07-30.basil',
       })
 
       const paymentIntent = await stripe.paymentIntents.create({
