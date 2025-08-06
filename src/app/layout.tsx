@@ -24,12 +24,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
           <Header />
           <AuthProvider>
             <PaymentProvider>
@@ -41,7 +35,6 @@ export default function RootLayout({
             </PaymentProvider>
           </AuthProvider>
           <Footer />
-        </ThemeProvider>
       </body>
     </html>
   );

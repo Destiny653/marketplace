@@ -241,7 +241,7 @@ export default function Header() {
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="py-3 px-4 block hover:bg-blue-700 transition-colors flex items-center">
+                <Link href="/contact" className="py-3 px-4 hover:bg-blue-700 transition-colors flex items-center">
                   <MessageSquare className="h-4 w-4 mr-1" />
                   Contact
                 </Link>
