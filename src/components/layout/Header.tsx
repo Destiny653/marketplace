@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ShoppingCart, User, Heart, MessageSquare, Search, Menu, X, ChevronDown, Phone, Mail, MapPin } from 'lucide-react'
 import CartButton from '@/components/layout/CartButton'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { ModeToggle } from '@/lib/utils/ThemeToggle'
+import Image from 'next/image'
 
 interface Category {
   id: string
@@ -117,8 +117,8 @@ export default function Header() {
               >
                 {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
-              <Link href="/" className="text-2xl font-bold text-blue-600">
-                Marketplace
+              <Link href="/" className="text-2xl font-bold text-blue-600 h-8 overflow-hidden flex items-center">
+                <Image src="/multivendor-logo.png" alt="logo" width={220} height={400} className='h-'/>
               </Link>
             </div>
 
@@ -175,7 +175,6 @@ export default function Header() {
                 </Link>
               )}
 
-              <ModeToggle />
             </div>
           </div>
         </div>

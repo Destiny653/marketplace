@@ -47,10 +47,7 @@ function LoginContent() {
           toast.error(error.message)
         }
       } else {
-        toast.success('Signed in successfully')
-        // Small delay to ensure state updates propagate
-        await new Promise(resolve => setTimeout(resolve, 100))
-        handleAuthRedirect(router, searchParams, '/')
+        toast.success('Signing in...')
       }
     } catch (err: any) {
       toast.error(err.message || 'An unexpected error occurred')

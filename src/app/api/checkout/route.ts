@@ -75,7 +75,7 @@ export async function POST(request: Request) {
 
     // Initialize payment based on method
     let paymentIntentId = null
-    let paymentStatus = 'pending'
+    const paymentStatus = 'pending'
 
     const paymentMethodStr = body.paymentMethod as string
     if (paymentMethodStr.startsWith('stripe_')) {
