@@ -65,7 +65,7 @@ export function PaymentForm({
           error,
           success,
          })
-        await updateOrderPaymentStatus(orderId, paymentIntentId)
+        await updateOrderPaymentStatus(orderId, status, paymentIntentId)
 
         setClientSecret(clientSecret)
       } catch (err) {
