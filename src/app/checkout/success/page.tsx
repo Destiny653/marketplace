@@ -163,12 +163,12 @@ function CheckoutSuccessContent() {
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
 
-          <Link
+          {/* <Link
             href="/account"
             className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             View Order History
-          </Link>
+          </Link> */}
         </div>
       </div>
     </div>

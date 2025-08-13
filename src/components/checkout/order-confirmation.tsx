@@ -78,12 +78,12 @@ export function OrderConfirmation({ order }: OrderConfirmationProps) {
         <Button asChild>
           <Link href="/products">Continue Shopping</Link>
         </Button>
-        <Button variant="outline" asChild>
+        {/* <Button variant="outline" asChild>
           <Link href={`/account/orders/${order.id}`}>
             <CreditCard className="mr-2 h-4 w-4" />
             View Order Details
           </Link>
-        </Button>
+        </Button> */}
       </div>
     </div>
   )
