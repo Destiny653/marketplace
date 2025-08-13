@@ -7,6 +7,7 @@ import { getPaymentMethodById } from '@/lib/constants/payment-methods'
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { updateOrderPaymentStatus } from '@/lib/actions/order-actions';
+import { useCart } from '@/hooks/useCart';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -23,6 +24,7 @@ export function PaymentForm({
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const paymentMethod = getPaymentMethodById(paymentMethodId)
+   const { items, clearCart } = useCart()
 
   useEffect(() => {
     const fetchClientSecret = async () => {
@@ -82,6 +84,7 @@ export function PaymentForm({
 
   const handleSuccess = () => {
     toast.success('Payment successful!')
+    clearCart()
     router.push(`/checkout/success?orderId=${orderId}`)
   }
 
