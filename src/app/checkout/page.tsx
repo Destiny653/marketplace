@@ -121,7 +121,7 @@ export default function CheckoutPage() {
       }
       
       // Clear the cart after successful checkout
-      clearCart()
+      // clearCart()
       
       // Redirect to payment page with order ID
       router.push(`/checkout/payment/${result.orderId}`) 
